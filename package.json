@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "description": "Interacts with a malicious website to grab screenshots and other information.",
   "main": "app.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node --experimental-modules index.js"
   },
   "repository": {
     "type": "git",
@@ -15,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/csci4950tgt/honeyclient/issues"
   },
-  "homepage": "https://github.com/csci4950tgt/honeyclient#readme"
+  "homepage": "https://github.com/csci4950tgt/honeyclient#readme",
+  "dependencies": {
+    "puppeteer": "^1.20.0"
+  }
 }
