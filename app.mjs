@@ -56,8 +56,10 @@ import {promises as fs} from 'fs';
             page.setUserAgent(userAgent);
 
             const screenshotFile = `output/${ticketNumber}/${contents.screenshot.filename}`;
-            console.log(`Saving screenshot to ${screenshotFile}`);
+            const screenshotFileFull = `output/${ticketNumber}/${contents.screenshot.filename.slice(0,-4)}Full.png`;
+            console.log(`Saving screenshots to output/${ticketNumber}`);
             await page.screenshot({path: screenshotFile});
+            await page.screenshot({path: screenshotFileFull, fullPage: true});
 
             console.log("Done, closing page.");
             await page.close();
