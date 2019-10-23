@@ -2,11 +2,11 @@
   "name": "honeyclient",
   "version": "1.0.0",
   "description": "Interacts with a malicious website to grab screenshots and other information.",
-  "main": "app.mjs",
+  "main": "app.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "babel-node index.js"
+    "start": "babel-node app.js"
   },
   "repository": {
     "type": "git",
