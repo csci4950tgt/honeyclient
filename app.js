@@ -1,6 +1,7 @@
 import puppeteer from 'puppeteer';
 import db from './src/manager/DatabaseManager';
 
+// these are used for the fullpage screenshot:
 const FULLPAGE_VIEWPORT_WIDTH = 1920;
 const FULLPAGE_VIEWPORT_HEIGHT = 1080;
 
@@ -67,6 +68,7 @@ const FULLPAGE_VIEWPORT_HEIGHT = 1080;
 				deviceScaleFactor: 1
 			});
 
+			// the last user-agent is re-used to take the full-page screenshot:
 			artifacts.push({
 				screenshot: {
 					ticketId: ticketId,
@@ -81,6 +83,7 @@ const FULLPAGE_VIEWPORT_HEIGHT = 1080;
 			console.log("Saving output to database...");
             for(let obj of artifacts) {
                 console.log(`Saving object ${obj.screenshot.filename}...`);
+
                 await db.storeFile(obj.screenshot.ticketId, obj.screenshot.filename, obj.data);
             }
 
