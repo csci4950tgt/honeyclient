@@ -1,75 +1,101 @@
 import puppeteer from 'puppeteer';
-import {promises as fs} from 'fs';
+import db from './src/manager/DatabaseManager';
+
+const FULLPAGE_VIEWPORT_WIDTH = 1920;
+const FULLPAGE_VIEWPORT_HEIGHT = 1080;
 
 (async () => {
     console.log("Launching browser...");
     const browser = await puppeteer.launch();
 
-    console.log("Reading list of jobs...");
-    let input, output;
+	console.log("Finding new tickets...");
+    const tickets = await db.getNewTickets();
 
-    // read in list of files from input and output dirs:
-    try {
-        input = await fs.readdir('input');
-        output = await fs.readdir('output');
-    } catch(e) {
-        console.warn("Failed to read input/output directories.");
+    for(let ticket of tickets) {
+        const ticketId = ticket.get("id");
+        const ticketURL = ticket.get("url");
 
-        process.exit(0);
-    }
+        // pull the fields out of the screenshot object into something a bit easier to work with:
+        const ticketScreenshots = ticket.get("ScreenShots").map(ss => ({
+			ticketId: ss.get("TicketId"),
+			width: ss.get("width"),
+			height: ss.get("height"),
+			filename: ss.get("filename"),
+			userAgent: ss.get("userAgent")
+		}));
 
-    // find .json files in input dir:
-    let tickets = input.filter(filename => filename.endsWith(".json"));
+        // any objects in here will get stored:
+        const artifacts = [];
 
-    // filter output dir to only be folders, not files:
-    const finishedTickets = output.filter(filename => !filename.includes("."));
-
-    // check which .json files don't have folders in output/:
-    const unfinished = tickets.filter(filename => !finishedTickets.includes(filename.replace(".json", "")));
-
-    for(let ticket of unfinished) {
-        const ticketNumber = ticket.replace(".json", "");
-
-        console.log(`Start processing for ${ticketNumber}.`);
+        console.log(`Start processing for ticket #${ticketId}.`);
 
         try {
-            let contents = await fs.readFile(`input/${ticket}`, "utf8");
-
-            contents = JSON.parse(contents);
-
-            // make output/{ticketNumber}:
-            fs.mkdir(`output/${ticketNumber}`);
-
             // create a new page in puppeteer:
             const page = await browser.newPage();
-            await page.setViewport({
-                width: contents.screenshot.width,
-                height: contents.screenshot.height,
-                deviceScaleFactor: 1,
-            });
 
-            console.log(`Loading ${contents.url}...`);
-            await page.goto(contents.url);
+			console.log(`Loading ${ticketURL}...`);
+			await page.goto(ticketURL);
 
-            const userAgent = contents.useragent || await browser.userAgent();
-            console.log(`Setting user agent string to ${userAgent}.`);
-            page.setUserAgent(userAgent);
+			// process all screenshots:
+			for(let ss of ticketScreenshots) {
+			    // +1 is intentional, extra fullpage screenshot should count towards total:
+			    console.log(`Processing screenshot ${ticketScreenshots.indexOf(ss) + 1} of ${ticketScreenshots.length + 1}.`);
 
-            const screenshotFile = `output/${ticketNumber}/${contents.screenshot.filename}`;
-            const screenshotFileFull = `output/${ticketNumber}/${contents.screenshot.filename.slice(0,-4)}Full.png`;
-            console.log(`Saving screenshots to output/${ticketNumber}`);
-            await page.screenshot({path: screenshotFile});
-            await page.screenshot({path: screenshotFileFull, fullPage: true});
+				await page.setViewport({
+					width: ss.width,
+					height: ss.height,
+					deviceScaleFactor: 1
+				});
+
+				const userAgent = ss.userAgent || await browser.userAgent();
+				console.log(`Setting user agent string to ${userAgent}.`);
+				page.setUserAgent(userAgent);
+
+				// data object is a buffer, we'll convert it later:
+				artifacts.push({
+                    screenshot: ss,
+                    data: await page.screenshot()
+                });
+            }
+
+            // take full-page screenshot:
+			console.log(`Processing screenshot ${ticketScreenshots.length + 1} of ${ticketScreenshots.length + 1}.`);
+
+			await page.setViewport({
+				width: FULLPAGE_VIEWPORT_WIDTH,
+				height: FULLPAGE_VIEWPORT_HEIGHT,
+				deviceScaleFactor: 1
+			});
+
+			artifacts.push({
+				screenshot: {
+					ticketId: ticketId,
+					width: FULLPAGE_VIEWPORT_WIDTH,
+					height: FULLPAGE_VIEWPORT_HEIGHT,
+					filename: "screenshotFull.png",
+					userAgent: await browser.userAgent()
+				},
+				data: await page.screenshot({fullPage: true})
+		    });
+
+			console.log("Saving output to database...");
+            for(let obj of artifacts) {
+                console.log(`Saving object ${obj.screenshot.filename}...`);
+                await db.storeFile(obj.screenshot.ticketId, obj.screenshot.filename, obj.data);
+            }
+
+			console.log("Marking ticket as processed...");
+            await db.closeTicketById(ticketId);
 
             console.log("Done, closing page.");
             await page.close();
         } catch(e) {
-            console.warn(`Failed to load ticket: ${ticket}`);
+            console.warn("An error occurred when processing a ticket:");
 
             console.log(e);
         }
     }
 
-    console.log(`Finished ${tickets.length} jobs! Closing browser.`);
+    console.log(`Finished ${tickets.length} tickets! Closing browser.`);
     await browser.close();
 })();
