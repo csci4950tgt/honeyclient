@@ -5,101 +5,118 @@ import db from './manager/DatabaseManager';
 const FULLPAGE_VIEWPORT_WIDTH = 1920;
 const FULLPAGE_VIEWPORT_HEIGHT = 1080;
 
-const processTicket = async () => {
+const getCustomScreenshots = (ticket, defaultUserAgent) => {
+  // custom screenshot functionality not yet added, so will just return empty
+  // array
+  return [];
+
+  // pull the fields out of the screenshot object into something a bit easier to work with:
+  // const ticketScreenshots = ticket.get('ScreenShots').map(ss => ({
+  //   ticketId: ss.get('TicketId'),
+  //   width: ss.get('width'),
+  //   height: ss.get('height'),
+  //   filename: ss.get('filename'),
+  //   userAgent: ss.get('userAgent'),
+  // }));
+};
+
+const processScreenshot = async (page, ss, defaultUserAgent) => {
+  console.log(`processing screenshot for ticket: ${ss.ticketId}`);
+
+  // set viewport
+  await page.setViewport({
+    width: ss.width,
+    height: ss.height,
+    deviceScaleFactor: 1,
+  });
+
+  // set user agent
+  const userAgent = ss.userAgent || defaultUserAgent;
+  page.setUserAgent(userAgent);
+
+  // capture screenshot
+  const data = await page.screenshot();
+
+  // data object is a buffer, we'll convert it later:
+  artifact = {
+    screenshot: ss,
+    data: data,
+  };
+
+  return artifact;
+};
+
+const processFullScreenshot = async (page, defaultUserAgent, ticketId) => {
+  console.log('\tProcessing fullpage screenshot');
+
+  // initialize fullpage screenshot object
+  const ss = {
+    ticketId: ticketId,
+    width: FULLPAGE_VIEWPORT_WIDTH,
+    height: FULLPAGE_VIEWPORT_HEIGHT,
+    filename: 'screenshotFull.png',
+    userAgent: defaultUserAgent,
+  };
+
+  // set viewport
+  await page.setViewport({
+    width: FULLPAGE_VIEWPORT_WIDTH,
+    height: FULLPAGE_VIEWPORT_HEIGHT,
+  });
+
+  // capture screenshot
+  const data = await page.screenshot({ fullPage: true });
+  // create artifact object to return
+  const artifact = {
+    screenshot: ss,
+    data: data,
+  };
+
+  return artifact;
+};
+
+const saveToDB = async (db, artifacts) => {
+  console.log('Saving artifacts to database...');
+  for (let obj of artifacts) {
+    await db.storeFile(
+      obj.screenshot.ticketId,
+      obj.screenshot.filename,
+      obj.data
+    );
+  }
+};
+
+const processTicket = async (browser, ticket) => {
+  // get important ticket info from db
   const ticketId = ticket.get('id');
   const ticketURL = ticket.get('url');
 
-  // pull the fields out of the screenshot object into something a bit easier to work with:
-  const ticketScreenshots = ticket.get('ScreenShots').map(ss => ({
-    ticketId: ss.get('TicketId'),
-    width: ss.get('width'),
-    height: ss.get('height'),
-    filename: ss.get('filename'),
-    userAgent: ss.get('userAgent'),
-  }));
+  // create a new page in puppeteer:
+  console.log(`Starting to process ticket #${ticketId}.`);
+  const page = await browser.newPage();
+  await page.goto(ticketURL);
 
-  // any objects in here will get stored:
+  // Store all artifacts while processing honeyclient, will eventually store in db
   const artifacts = [];
 
-  console.log(`Start processing for ticket #${ticketId}.`);
-
-  try {
-    // create a new page in puppeteer:
-    const page = await browser.newPage();
-
-    console.log(`Loading ${ticketURL}...`);
-    await page.goto(ticketURL);
-
-    // process all screenshots:
-    for (let ss of ticketScreenshots) {
-      // +1 is intentional, extra fullpage screenshot should count towards total:
-      console.log(
-        `Processing screenshot ${ticketScreenshots.indexOf(ss) +
-          1} of ${ticketScreenshots.length + 1}.`
-      );
-
-      await page.setViewport({
-        width: ss.width,
-        height: ss.height,
-        deviceScaleFactor: 1,
-      });
-
-      const userAgent = ss.userAgent || (await browser.userAgent());
-      console.log(`Setting user agent string to ${userAgent}.`);
-      page.setUserAgent(userAgent);
-
-      // data object is a buffer, we'll convert it later:
-      artifacts.push({
-        screenshot: ss,
-        data: await page.screenshot(),
-      });
-    }
-
-    // take full-page screenshot:
-    console.log(
-      `Processing screenshot ${ticketScreenshots.length +
-        1} of ${ticketScreenshots.length + 1}.`
-    );
-
-    await page.setViewport({
-      width: FULLPAGE_VIEWPORT_WIDTH,
-      height: FULLPAGE_VIEWPORT_HEIGHT,
-      deviceScaleFactor: 1,
-    });
-
-    // the last user-agent is re-used to take the full-page screenshot:
-    artifacts.push({
-      screenshot: {
-        ticketId: ticketId,
-        width: FULLPAGE_VIEWPORT_WIDTH,
-        height: FULLPAGE_VIEWPORT_HEIGHT,
-        filename: 'screenshotFull.png',
-        userAgent: await browser.userAgent(),
-      },
-      data: await page.screenshot({ fullPage: true }),
-    });
-
-    console.log('Saving output to database...');
-    for (let obj of artifacts) {
-      console.log(`Saving object ${obj.screenshot.filename}...`);
-
-      await db.storeFile(
-        obj.screenshot.ticketId,
-        obj.screenshot.filename,
-        obj.data
-      );
-    }
-
-    console.log('Marking ticket as processed...');
-    await db.closeTicketById(ticketId);
-
-    console.log('Done, closing page.');
-    await page.close();
-  } catch (e) {
-    console.warn('An error occurred when processing a ticket:');
-
-    console.log(e);
+  // process custom screenshots
+  const customScreenshots = getCustomScreenshots(ticket);
+  for (const ss of customScreenshots) {
+    let artifact = await processScreenshot(page, ss);
+    artifacts.push(artifact);
   }
+
+  // process full page screenshot
+  const defaultUserAgent = await browser.userAgent();
+  let artifact = await processFullScreenshot(page, defaultUserAgent, ticketId);
+  artifacts.push(artifact);
+
+  // save artifacts to database
+  await saveToDB(db, artifacts);
+
+  // Close ticket and page
+  await db.closeTicketById(ticketId);
+  await page.close();
 };
 
 const main = async () => {
@@ -109,11 +126,20 @@ const main = async () => {
   console.log('Finding new tickets...');
   const tickets = await db.getNewTickets();
 
-  for (let ticket of tickets) {
-    processTicket(ticket);
+  try {
+    // loop through and process tickets
+    for (let ticket of tickets) {
+      await processTicket(browser, ticket);
+    }
+    // success message
+    console.log(
+      `Finished processing ${tickets.length} tickets! Closing browser.`
+    );
+  } catch (e) {
+    console.error('An error occured when processing a ticket');
+    console.log(e);
   }
 
-  console.log(`Finished ${tickets.length} tickets! Closing browser.`);
   await browser.close();
 };
 
