@@ -1,5 +1,5 @@
 import puppeteer from 'puppeteer';
-import db from './src/manager/DatabaseManager';
+import db from './manager/DatabaseManager';
 
 // these are used for the fullpage screenshot:
 const FULLPAGE_VIEWPORT_WIDTH = 1920;
