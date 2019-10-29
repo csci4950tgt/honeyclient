@@ -63,4 +63,11 @@ const storeFile = async (ticketId, filename, buf) => {
   await FileArtifact.create({ ticketId, filename, data: buf });
 };
 
-export default { getNewTickets, closeTicketById, storeFile };
+const saveArtifacts = async artifacts => {
+  console.log('Saving artifacts to database...');
+  for (let obj of artifacts) {
+    await storeFile(obj.screenshot.ticketId, obj.screenshot.filename, obj.data);
+  }
+};
+
+export default { getNewTickets, closeTicketById, storeFile, saveArtifacts };
