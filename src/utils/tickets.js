@@ -1,5 +1,5 @@
 import db from './db';
-import ss from './screenshots';
+import ScreenshotManager from './screenshots';
 
 const processTicket = async (browser, ticket) => {
   // get important ticket info from db
@@ -14,21 +14,11 @@ const processTicket = async (browser, ticket) => {
   // Store all artifacts while processing honeyclient, will eventually store in db
   const artifacts = [];
 
-  // process custom screenshots
-  const customScreenshots = ss.getCustomScreenshots(ticket);
-  for (const ss of customScreenshots) {
-    let artifact = await ss.processScreenshot(page, ss);
-    artifacts.push(artifact);
-  }
-
-  // process full page screenshot
+  // process screenshots
   const defaultUserAgent = await browser.userAgent();
-  let artifact = await ss.processFullScreenshot(
-    page,
-    defaultUserAgent,
-    ticketId
-  );
-  artifacts.push(artifact);
+  const ss = new ScreenshotManager(defaultUserAgent);
+  const ssArtifacts = await ss.processScreenshots(ticket, page);
+  artifacts.push(...ssArtifacts);
 
   // save artifacts to database
   await db.saveArtifacts(artifacts);
