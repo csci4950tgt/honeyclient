@@ -26,3 +26,6 @@ www/
 config/config.json
 config/googlepkey.pem
 /nbproject/
+
+# Misc
+*.swp
