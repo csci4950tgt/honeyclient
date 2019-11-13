@@ -67,7 +67,7 @@ class ScreenshotManager {
     const data = await page.screenshot();
 
     // data object is a buffer, we'll convert it later:
-    artifact = {
+    const artifact = {
       screenshot: ss,
       data,
     };
