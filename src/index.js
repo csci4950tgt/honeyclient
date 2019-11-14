@@ -19,7 +19,7 @@ const main = async () => {
       `Finished processing ${tickets.length} tickets! Closing browser.`
     );
   } catch (e) {
-    console.error('An error occured when processing a ticket');
+    console.error('An error occurred when processing a ticket');
     console.log(e);
   }
 
