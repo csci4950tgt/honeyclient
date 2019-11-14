@@ -41,7 +41,8 @@ class ScreenshotManager {
     const data = await page.screenshot({ fullPage: true });
     // create artifact object to return
     const artifact = {
-      screenshot: ss,
+      ticketId: ss.ticketId,
+      filename: ss.filename,
       data,
     };
 
@@ -68,7 +69,8 @@ class ScreenshotManager {
 
     // data object is a buffer, we'll convert it later:
     const artifact = {
-      screenshot: ss,
+      ticketId: ss.ticketId,
+      filename: ss.filename,
       data,
     };
 
