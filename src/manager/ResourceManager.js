@@ -31,10 +31,7 @@ export default class ResourceManager {
       // find first available name:
       while (this.resources.some(x => x.filename === identifier)) {
         i++;
-        identifier = `${hostname}/${pathParsed.name +
-          '-' +
-          i +
-          pathParsed.ext}`;
+        identifier = `${hostname}/${pathParsed.name}-${i}${pathParsed.ext}`;
       }
 
       console.log(`${status} ${url}`);
