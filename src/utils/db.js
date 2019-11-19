@@ -1,6 +1,8 @@
 import Sequelize from 'sequelize';
 
-const sequelize = new Sequelize('postgres://gorm:gorm@localhost:5432/gorm');
+const sequelize = new Sequelize('postgres://gorm:gorm@localhost:5432/gorm', {
+  logging: false,
+});
 
 const Ticket = sequelize.define(
   'Ticket',
@@ -49,7 +51,9 @@ Ticket.hasMany(ScreenShot, { foreignKey: 'ticket_id' });
 
 const getNewTickets = async () => {
   // pull in associations:
-  await sequelize.sync();
+  await sequelize.sync({
+    logging: false,
+  });
 
   // find unprocessed tickets, with their screenshot objects:
   return Ticket.findAll({ where: { processed: false }, include: [ScreenShot] });
