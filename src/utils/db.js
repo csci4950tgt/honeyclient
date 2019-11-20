@@ -4,8 +4,6 @@ import PGPubsub from 'pg-pubsub';
 const sequelize = new Sequelize('postgres://gorm:gorm@localhost:5432/gorm');
 const pubsubInstance = new PGPubsub('postgres://gorm:gorm@localhost:5432/gorm');
 
-pubsubInstance.addChannel('update');
-
 const Ticket = sequelize.define(
   'Ticket',
   {
@@ -74,4 +72,14 @@ const saveArtifacts = async artifacts => {
   }
 };
 
-export default { getNewTickets, closeTicketById, storeFile, saveArtifacts };
+const registerUpdateHandler = fn => {
+  pubsubInstance.addChannel('update', fn);
+};
+
+export default {
+  getNewTickets,
+  closeTicketById,
+  storeFile,
+  saveArtifacts,
+  registerUpdateHandler,
+};

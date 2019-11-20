@@ -7,7 +7,7 @@ const main = async () => {
   console.log('Launching browser...');
   const browser = await puppeteer.launch();
 
-  pubsubInstance.once('update', async () => {
+  db.registerUpdateHandler(async () => {
     console.log('Finding new tickets...');
     const tickets = await db.getNewTickets();
 
