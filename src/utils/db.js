@@ -1,6 +1,10 @@
 import Sequelize from 'sequelize';
+import PGPubsub from 'pg-pubsub';
 
 const sequelize = new Sequelize('postgres://gorm:gorm@localhost:5432/gorm');
+const pubsubInstance = new PGPubsub('postgres://gorm:gorm@localhost:5432/gorm');
+
+pubsubInstance.addChannel('update');
 
 const Ticket = sequelize.define(
   'Ticket',
