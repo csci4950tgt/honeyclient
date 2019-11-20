@@ -1,5 +1,9 @@
 # Base image
-FROM node:alpine as builder
+# FROM node:alpine
+
+# A Puppeteer Docker image based on Puppeteer’s own recommendations 
+# https://hub.docker.com/r/buildkite/puppeteer
+FROM buildkite/puppeteer
 
 # set working directory
 WORKDIR /app

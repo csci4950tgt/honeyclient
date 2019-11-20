@@ -4,7 +4,14 @@ import ticketManager from './utils/tickets';
 
 const main = async () => {
   console.log('Launching browser...');
-  const browser = await puppeteer.launch();
+
+  // TODO: Figure out how to make this work in docker without --no-sandbox. This
+  // is a security hole
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox'],
+  });
+  // const browser = await puppeteer.launch();
 
   console.log('Finding new tickets...');
   const tickets = await db.getNewTickets();

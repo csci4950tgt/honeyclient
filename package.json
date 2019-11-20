@@ -19,6 +19,10 @@
   },
   "homepage": "https://github.com/csci4950tgt/honeyclient#readme",
   "dependencies": {
+    "@babel/core": "^7.7.2",
+    "@babel/node": "^7.7.0",
+    "@babel/plugin-proposal-class-properties": "^7.7.0",
+    "@babel/preset-env": "^7.7.1",
     "js-beautify": "^1.10.2",
     "pg": "^7.12.1",
     "pg-hstore": "^2.3.3",
@@ -26,10 +30,6 @@
     "sequelize": "^5.21.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.6.4",
-    "@babel/node": "^7.6.3",
-    "@babel/plugin-proposal-class-properties": "^7.5.5",
-    "@babel/preset-env": "^7.6.2",
     "husky": "^3.0.9",
     "prettier": "^1.18.2",
     "pretty-quick": "^2.0.0"
