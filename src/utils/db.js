@@ -66,7 +66,15 @@ const closeTicketById = ticketId => {
 };
 
 const storeFile = async (ticketId, filename, buf) => {
-  await FileArtifact.create({ ticketId, filename, data: buf });
+  const isUniqueFile = async (ticketId, filename, buf) => {
+    const count = FileArtifact.count({ where: { ticketId, fileName, buf } });
+    if (count == 0) return true;
+    return false;
+  };
+
+  if (isUniqueFile(ticketId, filename, buf)) {
+    await FileArtifact.create({ ticketId, filename, data: buf });
+  }
 };
 
 const saveArtifacts = async artifacts => {
