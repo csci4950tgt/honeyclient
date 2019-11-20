@@ -1,7 +1,9 @@
 import Sequelize from 'sequelize';
 import PGPubsub from 'pg-pubsub';
 
-const sequelize = new Sequelize('postgres://gorm:gorm@localhost:5432/gorm');
+const sequelize = new Sequelize('postgres://gorm:gorm@localhost:5432/gorm', {
+  logging: false,
+});
 const pubsubInstance = new PGPubsub('postgres://gorm:gorm@localhost:5432/gorm');
 
 const Ticket = sequelize.define(
@@ -51,7 +53,9 @@ Ticket.hasMany(ScreenShot, { foreignKey: 'ticket_id' });
 
 const getNewTickets = async () => {
   // pull in associations:
-  await sequelize.sync();
+  await sequelize.sync({
+    logging: false,
+  });
 
   // find unprocessed tickets, with their screenshot objects:
   return Ticket.findAll({ where: { processed: false }, include: [ScreenShot] });

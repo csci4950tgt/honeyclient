@@ -18,13 +18,14 @@ const main = async () => {
       }
       // success message
       console.log(
-        `Finished processing ${tickets.length} tickets! Closing browser.`
+        `Finished processing ${tickets.length} ticket(s)! Awaiting more...`
       );
     } catch (e) {
       console.error('An error occurred when processing a ticket');
       console.log(e);
     }
   });
+  console.log(`Closing browser...`);
   await browser.close();
 };
 
