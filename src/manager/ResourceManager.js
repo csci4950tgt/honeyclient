@@ -1,4 +1,3 @@
-import { js as beautify } from 'js-beautify';
 import path from 'path';
 
 export default class ResourceManager {
@@ -40,12 +39,11 @@ export default class ResourceManager {
         console.log(`Beautifying and saving to ${identifier}.`);
 
         const text = await response.text();
-        const beautified = beautify(text);
 
         this.resources.push({
           ticketId,
           filename: identifier,
-          data: Buffer.from(beautified, 'utf8'),
+          data: Buffer.from(text, 'utf8'),
         });
       }
     });
