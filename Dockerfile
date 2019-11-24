@@ -17,5 +17,6 @@ RUN npm install --production --silent
 COPY . ./
 
 # run app
-RUN npm run start
+# RUN npm run start
+CMD npm run start
 
