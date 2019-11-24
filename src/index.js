@@ -28,7 +28,6 @@ const setupBrowser = async () => {
   // TODO: Figure out how to make this work in docker without --no-sandbox. This
   // is a security hole
   browser = await puppeteer.launch({
-    headless: true,
     args: ['--no-sandbox'],
   });
   // browser = await puppeteer.launch();
