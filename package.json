@@ -19,7 +19,6 @@
   },
   "homepage": "https://github.com/csci4950tgt/honeyclient#readme",
   "dependencies": {
-    "js-beautify": "^1.10.2",
     "pg": "^7.12.1",
     "pg-hstore": "^2.3.3",
     "pg-pubsub": "^0.5.0",
