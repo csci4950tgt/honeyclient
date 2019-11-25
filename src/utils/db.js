@@ -1,10 +1,32 @@
 import Sequelize from 'sequelize';
 import PGPubsub from 'pg-pubsub';
 
-const sequelize = new Sequelize('postgres://gorm:gorm@localhost:5432/gorm', {
+const getEnv = (key, fallback) => {
+  if (process.env.key) {
+    return process.env.key;
+  }
+  return fallback;
+};
+
+const getDBConnectionURI = () => {
+  // get ENV variables for initializing database
+  const user = process.env.PG_USER || 'gorm';
+  const password = process.env.PG_PASSWORD || 'gorm';
+  const database = process.env.PG_DB || 'gorm';
+  const host = process.env.PG_HOST || 'localhost';
+  const port = process.env.PG_PORT || '5432';
+  // return "postgres://gorm:gorm@localhost:5432/gorm"
+  return `postgres://${user}:${password}@${host}:${port}/${database}`;
+};
+
+const dbConnectionURI = getDBConnectionURI();
+
+console.log('database connection uri: ', dbConnectionURI);
+
+const sequelize = new Sequelize(dbConnectionURI, {
   logging: false,
 });
-const pubsubInstance = new PGPubsub('postgres://gorm:gorm@localhost:5432/gorm');
+const pubsubInstance = new PGPubsub(dbConnectionURI);
 
 const Ticket = sequelize.define(
   'Ticket',
