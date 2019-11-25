@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/csci4950tgt/honeyclient#readme",
   "dependencies": {
+    "express": "^4.17.1",
     "pg": "^7.12.1",
     "pg-hstore": "^2.3.3",
     "pg-pubsub": "^0.5.0",

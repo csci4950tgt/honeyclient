@@ -75,9 +75,13 @@ const saveArtifacts = async artifacts => {
     await storeFile(obj.ticketId, obj.filename, obj.data);
   }
 };
-
+//this is where is connecting with postgres and we need to connect with express
 const registerUpdateHandler = fn => {
   pubsubInstance.addChannel('update', fn);
+};
+
+const getTicket = ticketId => {
+  return Ticket.findAll({ where: { id: ticketId }, include: [ScreenShot] });
 };
 
 export default {
@@ -86,4 +90,5 @@ export default {
   storeFile,
   saveArtifacts,
   registerUpdateHandler,
+  getTicket,
 };

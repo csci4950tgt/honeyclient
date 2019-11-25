@@ -2,6 +2,7 @@ import puppeteer from 'puppeteer';
 import db from './utils/db';
 import ticketManager from './utils/tickets';
 import PGPubsub from 'pg-pubsub';
+import { wrap } from './middleware/wrap';
 
 let browser;
 
@@ -34,11 +35,33 @@ const main = async () => {
   console.log('Launching browser...');
   await setupBrowser();
 
-  console.log('Processing existing tickets since last run...');
-  await processAllTickets();
+  const express = require('express');
+  const app = express();
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  const port = process.env.PORT || 8000;
 
-  console.log('Waiting for new ticket notification.');
-  db.registerUpdateHandler(processAllTickets);
+  app.post('/ticket', (req, res) => {
+    try {
+      //onsole.log("---------------------" req.body));
+      //Promise.
+      const { id, url } = req.body;
+      console.log('---------------------' + id + ' ' + url);
+      //const ticket = db.getTicket(id);
+      //await ticketManager.processTicket(browser, ticket);
+      res.json(req.body);
+    } catch (error) {
+      console.error(error);
+    }
+  });
+
+  app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+
+  // console.log('Processing existing tickets since last run...');
+  // await processAllTickets();
+  //
+  // console.log('Waiting for new ticket notification.');
+  // db.registerUpdateHandler(processAllTickets);
 };
 
 main();
