@@ -17,6 +17,47 @@ export default class ResourceManager {
 
       // use hostname/filename as identifier:
       const processedURL = new URL(url);
+
+      const safeBrowsingURL =
+        'https://safebrowsing.googleapis.com/v4/threatMatches:find?key=' + '';
+      const request = {
+        client: {
+          clientId: '4950',
+          clientVersion: '0.0.1',
+        },
+        threatInfo: {
+          threatTypes: ['MALWARE'],
+          platformTypes: ['ANY_PLATFORM'],
+          threatEntryTypes: ['URL'],
+          threatEntries: [{ url: processedURL }],
+        },
+      };
+
+      const fetch = require('node-fetch');
+
+      try {
+        fetch(safeBrowsingURL, {
+          method: 'POST',
+          body: JSON.stringify(request),
+          responseType: 'application/json',
+        })
+          .then(res => res.json())
+          .then(res => {
+            if (res.matches === undefined) {
+              // console.log('----------------------------------------------');
+              // console.log('no malware find');
+            } else {
+              const { matches } = res.matches;
+              const match = matches[0];
+              console.log('----------------------------------------------');
+              console.log('malware find:');
+              console.log(match);
+            }
+          });
+      } catch (error) {
+        console.log(error);
+      }
+
       const hostname = processedURL.hostname;
       // grab the filename from the path specifier:
       const filename = processedURL.pathname.substring(
