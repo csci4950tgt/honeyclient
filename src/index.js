@@ -41,14 +41,24 @@ const main = async () => {
   app.use(express.urlencoded({ extended: true }));
   const port = process.env.PORT || 8000;
 
-  app.post('/ticket', (req, res) => {
+  app.post('/ticket', async (req, res) => {
     try {
-      //onsole.log("---------------------" req.body));
-      //Promise.
       const { id, url } = req.body;
       console.log('---------------------' + id + ' ' + url);
-      //const ticket = db.getTicket(id);
-      //await ticketManager.processTicket(browser, ticket);
+      const tickets = await db.getTicket(id);
+      try {
+        // loop through and process tickets
+        for (let ticket of tickets) {
+          await ticketManager.processTicket(browser, ticket);
+        }
+        // success message
+        console.log(
+          `Finished processing ${tickets.length} ticket(s)! Awaiting more...`
+        );
+      } catch (e) {
+        console.error('An error occurred when processing a ticket');
+        console.log(e);
+      }
       res.json(req.body);
     } catch (error) {
       console.error(error);
