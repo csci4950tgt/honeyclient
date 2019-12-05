@@ -49,6 +49,7 @@ const main = async () => {
   app.post('/ticket', async (req, res) => {
     try {
       const { id, url } = req.body;
+      console.log('---------------------' + id + ' ' + url);
       const tickets = await db.getTicket(id);
       try {
         // loop through and process tickets
