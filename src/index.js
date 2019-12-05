@@ -26,7 +26,12 @@ const processAllTickets = async () => {
 };
 
 const setupBrowser = async () => {
-  browser = await puppeteer.launch();
+  // TODO: Figure out how to make this work in docker without --no-sandbox. This
+  // is a security hole
+  browser = await puppeteer.launch({
+    args: ['--no-sandbox'],
+  });
+  // browser = await puppeteer.launch();
 
   browser.on('disconnected', setupBrowser);
 };
