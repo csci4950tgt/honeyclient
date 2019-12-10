@@ -52,10 +52,12 @@ const main = async () => {
       console.log('---------------------' + id + ' ' + url);
       const tickets = await db.getTicket(id);
       try {
+        const artifacts = [];
         // loop through and process tickets
         for (let ticket of tickets) {
-          await ticketManager.processTicket(browser, ticket);
+          artifacts.push(await ticketManager.processTicket(browser, ticket));
         }
+        console.log(artifacts);
         // success message
         console.log(
           `Finished processing ${tickets.length} ticket(s)! Awaiting more...`

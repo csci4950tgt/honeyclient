@@ -31,11 +31,14 @@ const processTicket = async (browser, ticket) => {
   artifacts.push(...(await resourceManager.process()));
 
   // save artifacts to database
-  await db.saveArtifacts(artifacts);
+  //don't want to do this????
+  //----------------------------------
+  //await db.saveArtifacts(artifacts);
 
   // Close ticket and page
   await db.closeTicketById(ticketId);
   await page.close();
+  return artifacts;
 };
 
 export default { processTicket };
