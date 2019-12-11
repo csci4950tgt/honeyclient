@@ -95,8 +95,8 @@ const registerUpdateHandler = fn => {
   pubsubInstance.addChannel('update', fn);
 };
 
-const getTicket = ticketId => {
-  const tickets = Ticket.findAll({
+const getTicket = async ticketId => {
+  const tickets = await Ticket.findAll({
     where: { id: ticketId },
     include: [ScreenShot],
   });

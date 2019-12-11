@@ -1,6 +1,6 @@
 import express from 'express';
 import db from '../utils/db';
-import ticketManager from './utils/tickets';
+import ticketManager from '../utils/tickets';
 
 const router = express.Router();
 
@@ -10,27 +10,28 @@ const router = express.Router();
  * @access Public
  */
 router.post('/', async (req, res) => {
+  // TODO: refactor to simply investigate a URL, and return file artifacts.
+  // Should not be touching the database at all
   try {
-    // TODO: refactor to simply investigate a URL, and return file artifacts.
-    // Should not be touching the database at all
+    // Parse and validate request body
     const { id } = req.body;
+    if (!id) {
+      console.error('Bad request.');
+      res.status(400).send({ error: 'Bad request.' });
+    }
     // Get ticket from database
     const ticket = await db.getTicket(id);
     if (!ticket) {
-      throw Error(`Ticket with ID "${id}" not found in database.`);
+      throw Error(`Ticket with ID '${id}' not found in database.`);
     }
-    console.log(ticket);
-    const artifacts = ticketManager.processTicket(browser, ticket);
-    if (artifacts.length() == 0) {
+    // Process Ticket
+    const artifacts = await ticketManager.processTicket(ticket);
+    if (artifacts.length === 0) {
       throw Error(
-        `No ticket artifacts found for ticket with URL "${ticket.url}"`
+        `No ticket artifacts found for ticket with URL '${ticket.url}'`
       );
     }
-    // success message
-    console.log(
-      `Finished processing ${tickets.length} ticket(s)! Awaiting more...`
-    );
-    // send artifacts back in response
+    // Send artifacts back in response
     res.json({ ticketArtifacts: artifacts });
   } catch (err) {
     console.error(err.message);

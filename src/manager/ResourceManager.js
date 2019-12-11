@@ -6,6 +6,7 @@ export default class ResourceManager {
   }
 
   setupResourceCollection(page, ticket) {
+    console.log(`Capturing JS...`);
     const ticketId = ticket.get('id');
 
     page.on('response', async response => {
@@ -33,11 +34,7 @@ export default class ResourceManager {
         identifier = `${hostname}/${pathParsed.name}-${i}${pathParsed.ext}`;
       }
 
-      console.log(`${status} ${url}`);
-
       if (ok && url.endsWith('.js')) {
-        console.log(`Beautifying and saving to ${identifier}.`);
-
         const text = await response.text();
 
         this.resources.push({

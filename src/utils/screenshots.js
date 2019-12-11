@@ -9,6 +9,7 @@ class ScreenshotManager {
 
   // Processes all screenshots for a ticket and returns artifacts
   processScreenshots = async (ticket, page) => {
+    console.log('Capturing screenshots...');
     this.ticket = ticket;
     const ssArtifacts = [];
 
@@ -28,8 +29,6 @@ class ScreenshotManager {
 
   // Process fullpage screenshot and return the artifact
   _processFullScreenshot = async page => {
-    console.log('\tProcessing fullpage screenshot');
-
     // initialize fullpage screenshot object
     const ss = {
       ticketId: this.ticket.get('id'),
@@ -51,8 +50,6 @@ class ScreenshotManager {
 
   // process custom screenshots of ticket and return artifacts
   _processCustomScreenshot = async (page, ss) => {
-    console.log(`processing screenshot for ticket: ${ss.ticketId}`);
-
     // set viewport
     await page.setViewport({
       width: ss.width,
