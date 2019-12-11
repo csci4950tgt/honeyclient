@@ -49,26 +49,23 @@ const main = async () => {
   app.post('/ticket', async (req, res) => {
     try {
       const { id, url } = req.body;
-      console.log('---------------------' + id + ' ' + url);
       const tickets = await db.getTicket(id);
-      try {
-        const artifacts = [];
-        // loop through and process tickets
-        for (let ticket of tickets) {
-          artifacts.push(await ticketManager.processTicket(browser, ticket));
-        }
-        console.log(artifacts);
-        // success message
-        console.log(
-          `Finished processing ${tickets.length} ticket(s)! Awaiting more...`
-        );
-        res.json({ ticketArtifacts: artifacts });
-      } catch (e) {
-        console.error('An error occurred when processing a ticket');
-        console.log(e);
+      var artifacts;
+      // loop through and process tickets
+      for (let ticket of tickets) {
+        artifacts = await ticketManager.processTicket(browser, ticket);
+        break;
       }
+      // success message
+      console.log(
+        `Finished processing ${tickets.length} ticket(s)! Awaiting more...`
+      );
+      res.json({ ticketArtifacts: artifacts });
     } catch (error) {
+      console.error('An error occurred when processing a ticket');
       console.error(error);
+      res.status(500).send({error: error});
+   }
     }
   });
 
