@@ -62,11 +62,11 @@ const main = async () => {
         console.log(
           `Finished processing ${tickets.length} ticket(s)! Awaiting more...`
         );
+        res.json({ ticketArtifacts: artifacts });
       } catch (e) {
         console.error('An error occurred when processing a ticket');
         console.log(e);
       }
-      res.json(req.body);
     } catch (error) {
       console.error(error);
     }

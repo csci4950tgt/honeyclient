@@ -33,7 +33,7 @@ const processTicket = async (browser, ticket) => {
   // save artifacts to database
   //don't want to do this????
   //----------------------------------
-  //await db.saveArtifacts(artifacts);
+  await db.saveArtifacts(artifacts);
 
   // Close ticket and page
   await db.closeTicketById(ticketId);
