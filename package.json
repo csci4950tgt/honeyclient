@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "babel-node src/index.js"
+    "start": "babel-node src/index.js",
+    "server": "nodemon --exec babel-node src/index.js"
   },
   "repository": {
     "type": "git",
@@ -28,6 +29,7 @@
   },
   "devDependencies": {
     "husky": "^3.0.9",
+    "nodemon": "^2.0.2",
     "prettier": "^1.18.2",
     "pretty-quick": "^2.0.0"
   },

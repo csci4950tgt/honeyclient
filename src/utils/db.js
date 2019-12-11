@@ -1,12 +1,7 @@
 import Sequelize from 'sequelize';
 import PGPubsub from 'pg-pubsub';
 
-const getEnv = (key, fallback) => {
-  if (process.env.key) {
-    return process.env.key;
-  }
-  return fallback;
-};
+console.log('Connecting to database...');
 
 const getDBConnectionURI = () => {
   // get ENV variables for initializing database
@@ -20,8 +15,6 @@ const getDBConnectionURI = () => {
 };
 
 const dbConnectionURI = getDBConnectionURI();
-
-console.log('database connection uri: ', dbConnectionURI);
 
 const sequelize = new Sequelize(dbConnectionURI, {
   logging: false,
@@ -103,7 +96,11 @@ const registerUpdateHandler = fn => {
 };
 
 const getTicket = ticketId => {
-  return Ticket.findAll({ where: { id: ticketId }, include: [ScreenShot] });
+  const tickets = Ticket.findAll({
+    where: { id: ticketId },
+    include: [ScreenShot],
+  });
+  return tickets[0];
 };
 
 export default {
