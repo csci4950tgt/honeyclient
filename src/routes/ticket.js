@@ -1,6 +1,6 @@
 import express from 'express';
-import db from '../utils/db';
-import ticketManager from '../utils/tickets';
+import db from '../utils/db.js';
+import ticketManager from '../utils/tickets.js';
 
 const router = express.Router();
 

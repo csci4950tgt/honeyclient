@@ -1,7 +1,7 @@
-import db from './db';
-import ScreenshotManager from './screenshots';
-import ResourceManager from '../manager/ResourceManager';
-import getBrowser from '../utils/browser';
+import db from './db.js';
+import ScreenshotManager from './screenshots.js';
+import ResourceManager from '../manager/ResourceManager.js';
+import getBrowser from '../utils/browser.js';
 
 const processTicket = async ticket => {
   // get important ticket info from db
