@@ -1,7 +1,7 @@
 import express from 'express';
 
 // Routes
-import ticketRouter from './routes/ticket';
+import ticketRouter from './routes/ticket.js';
 
 // Port
 const port = process.env.PORT || 8000;
