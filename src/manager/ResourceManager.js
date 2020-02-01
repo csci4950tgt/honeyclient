@@ -1,4 +1,5 @@
 import path from 'path';
+import { config } from '../index.js';
 
 export default class ResourceManager {
   constructor() {
@@ -19,7 +20,8 @@ export default class ResourceManager {
       const processedURL = new URL(url);
 
       const safeBrowsingURL =
-        'https://safebrowsing.googleapis.com/v4/threatMatches:find?key=' + '';
+        'https://safebrowsing.googleapis.com/v4/threatMatches:find?key=' +
+        index.config.google_safe_browsing_api_key;
       const request = {
         client: {
           clientId: '4950',
