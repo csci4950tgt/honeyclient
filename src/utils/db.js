@@ -1,12 +1,7 @@
 import Sequelize from 'sequelize';
 import PGPubsub from 'pg-pubsub';
 
-const getEnv = (key, fallback) => {
-  if (process.env.key) {
-    return process.env.key;
-  }
-  return fallback;
-};
+console.log('Connecting to database...');
 
 const getDBConnectionURI = () => {
   // get ENV variables for initializing database
@@ -20,8 +15,6 @@ const getDBConnectionURI = () => {
 };
 
 const dbConnectionURI = getDBConnectionURI();
-
-console.log('database connection uri: ', dbConnectionURI);
 
 const sequelize = new Sequelize(dbConnectionURI, {
   logging: false,
@@ -97,9 +90,17 @@ const saveArtifacts = async artifacts => {
     await storeFile(obj.ticketId, obj.filename, obj.data);
   }
 };
-
+//this is where is connecting with postgres and we need to connect with express
 const registerUpdateHandler = fn => {
   pubsubInstance.addChannel('update', fn);
+};
+
+const getTicket = async ticketId => {
+  const tickets = await Ticket.findAll({
+    where: { id: ticketId },
+    include: [ScreenShot],
+  });
+  return tickets[0];
 };
 
 export default {
@@ -108,4 +109,5 @@ export default {
   storeFile,
   saveArtifacts,
   registerUpdateHandler,
+  getTicket,
 };

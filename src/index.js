@@ -1,49 +1,20 @@
-import puppeteer from 'puppeteer';
-import db from './utils/db';
-import ticketManager from './utils/tickets';
-import PGPubsub from 'pg-pubsub';
+import express from 'express';
 
-let browser;
+// Routes
+import ticketRouter from './routes/ticket.js';
 
-const processAllTickets = async () => {
-  console.log('Finding new tickets...');
-  const tickets = await db.getNewTickets();
+// Port
+const port = process.env.PORT || 8000;
 
-  try {
-    // loop through and process tickets
-    for (let ticket of tickets) {
-      await ticketManager.processTicket(browser, ticket);
-    }
-    // success message
-    console.log(
-      `Finished processing ${tickets.length} ticket(s)! Awaiting more...`
-    );
-  } catch (e) {
-    console.error('An error occurred when processing a ticket');
-    console.log(e);
-  }
-};
+// Set up express server
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-const setupBrowser = async () => {
-  // TODO: Figure out how to make this work in docker without --no-sandbox. This
-  // is a security hole
-  browser = await puppeteer.launch({
-    args: ['--no-sandbox'],
-  });
-  // browser = await puppeteer.launch();
+// Use routes
+app.use('/ticket', ticketRouter);
 
-  browser.on('disconnected', setupBrowser);
-};
-
-const main = async () => {
-  console.log('Launching browser...');
-  await setupBrowser();
-
-  console.log('Processing existing tickets since last run...');
-  await processAllTickets();
-
-  console.log('Waiting for new ticket notification.');
-  db.registerUpdateHandler(processAllTickets);
-};
-
-main();
+// Serve app
+app.listen(port, () =>
+  console.log(`Honeyclient listening on http://localhost:${port}...`)
+);

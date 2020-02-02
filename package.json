@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "babel-node src/index.js"
+    "start": "node --experimental-modules src/index.js",
+    "server": "nodemon --exec node --experimental-modules src/index.js"
   },
   "repository": {
     "type": "git",
@@ -18,11 +19,11 @@
     "url": "https://github.com/csci4950tgt/honeyclient/issues"
   },
   "homepage": "https://github.com/csci4950tgt/honeyclient#readme",
+  "engines": {
+    "node": ">12.0.0"
+  },
   "dependencies": {
-    "@babel/core": "^7.7.2",
-    "@babel/node": "^7.7.0",
-    "@babel/plugin-proposal-class-properties": "^7.7.0",
-    "@babel/preset-env": "^7.7.1",
+    "express": "^4.17.1",
     "pg": "^7.12.1",
     "pg-hstore": "^2.3.3",
     "pg-pubsub": "^0.5.0",
@@ -31,6 +32,7 @@
   },
   "devDependencies": {
     "husky": "^3.0.9",
+    "nodemon": "^2.0.2",
     "prettier": "^1.18.2",
     "pretty-quick": "^2.0.0"
   },
