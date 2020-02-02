@@ -23,7 +23,9 @@
     "node": ">12.0.0"
   },
   "dependencies": {
+    "@limedocs/express-middleware-memfs": "^1.0.0-beta.18",
     "express": "^4.17.1",
+    "memfs": "^3.0.4",
     "puppeteer": "^1.20.0"
   },
   "devDependencies": {

@@ -1,6 +1,7 @@
 import ScreenshotManager from './screenshots.js';
 import ResourceManager from '../manager/ResourceManager.js';
 import getBrowser from '../utils/browser.js';
+import ArtifactManager from '../manager/ArtifactManager.js';
 
 const processTicket = async ticket => {
   const ticketId = ticket.getID();
@@ -32,14 +33,16 @@ const processTicket = async ticket => {
   // process resources
   artifacts.push(...(await resourceManager.process()));
 
-  // TODO: make a list of artifacts to return
-  // TODO: and send the list back
+  // store
+  ArtifactManager.storeArtifactsForTicket(artifacts);
 
   await page.close();
 
-  // Success
-  console.log(`Finished processing ticket #${ticket.id}.`);
-  return artifacts;
+  // Success, return list of paths
+  return {
+    success: true,
+    fileArtifacts: artifacts.map(ArtifactManager.artifactToPath),
+  };
 };
 
 export default { processTicket };
