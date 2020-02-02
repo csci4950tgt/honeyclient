@@ -8,6 +8,35 @@ const mappedFs = memfs.createFsFromVolume(volume);
 // configure absolute directories:
 volume.mkdirpSync(process.cwd());
 
+// recursively finds and deletes old artifacts:
+async function walkAndDelete(dir) {
+  const allDirEnts = await mappedFs.promises.readdir(dir, {
+    withFileTypes: true,
+  });
+
+  await Promise.all(
+    allDirEnts.map(async dirEnt => {
+      const res = path.resolve(dir, dirEnt.name);
+
+      if (dirEnt.isDirectory()) {
+        return walkAndDelete(res);
+      }
+
+      const stats = await mappedFs.promises.stat(res);
+
+      // if a file is older than 15 minutes, delete it:
+      if (Date.now() - stats.ctimeMs > 1000 * 60 * 15) {
+        console.log(`${res} is more than fifteen minutes old, deleting it...`);
+
+        await mappedFs.promises.unlink(res);
+      }
+    })
+  );
+}
+
+// cleanup routine:
+setInterval(() => walkAndDelete(`/`), 60 * 5 * 1000); // every 5 minutes
+
 export default {
   artifactToPath(artifact) {
     return `/artifacts/${artifact.ticketId}/${artifact.filename}`;
@@ -24,7 +53,10 @@ export default {
     }
   },
   listArtifactsByTicketId(ticketId) {
-    return Object.keys(volume.toJSON(`/artifacts/${ticketId}`));
+    const data = volume.toJSON(`/artifacts/${ticketId}`);
+
+    // filter out empty directories:
+    return Object.keys(data).filter(el => data[el] != null);
   },
   getFileSystem() {
     return mappedFs;
