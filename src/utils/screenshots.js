@@ -18,9 +18,9 @@ class ScreenshotManager {
     ssArtifacts.push(ssArtifact);
 
     // process custom screenshots
-    const customScreenshots = this._getCustomScreenshots();
+    const customScreenshots = ticket.getScreenshots();
     for (const ss of customScreenshots) {
-      let ssArtifact = await this._processCustomScreenshot(page, ss);
+      let ssArtifact = await this._processCustomScreenshot(page, ticket, ss);
       ssArtifacts.push(ssArtifact);
     }
 
@@ -31,7 +31,7 @@ class ScreenshotManager {
   _processFullScreenshot = async page => {
     // initialize fullpage screenshot object
     const ss = {
-      ticketId: this.ticket.get('id'),
+      ticketId: this.ticket.getID(),
       filename: 'screenshotFull.png',
       userAgent: this.defaultUserAgent,
     };
@@ -49,43 +49,27 @@ class ScreenshotManager {
   };
 
   // process custom screenshots of ticket and return artifacts
-  _processCustomScreenshot = async (page, ss) => {
+  _processCustomScreenshot = async (page, ticket, ss) => {
     // set viewport
     await page.setViewport({
-      width: ss.width,
-      height: ss.height,
+      width: ss.getWidth(),
+      height: ss.getHeight(),
       deviceScaleFactor: 1,
     });
 
     // set user agent
-    const userAgent = ss.userAgent || this.defaultUserAgent;
-    page.setUserAgent(userAgent);
+    const userAgent = ss.getUserAgent() || this.defaultUserAgent;
+    await page.setUserAgent(userAgent);
 
     // capture screenshot
     const data = await page.screenshot();
 
-    // data object is a buffer, we'll convert it later:
-    const artifact = {
-      ticketId: ss.ticketId,
-      filename: ss.filename,
+    // data object is a buffer, we'll send as base64:
+    return {
+      ticketId: ticket.getID(),
+      filename: ss.getFilename(),
       data,
     };
-
-    return artifact;
-  };
-
-  // get all custom screenshots of a ticket
-  _getCustomScreenshots = () => {
-    // pull the fields out of the screenshot object into something a bit easier to work with:
-    const ticketScreenshots = this.ticket.get('ScreenShots').map(ss => ({
-      ticketId: ss.get('TicketId'),
-      width: ss.get('width'),
-      height: ss.get('height'),
-      filename: ss.get('filename'),
-      userAgent: ss.get('userAgent'),
-    }));
-
-    return ticketScreenshots;
   };
 }
 

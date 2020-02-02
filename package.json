@@ -24,11 +24,7 @@
   },
   "dependencies": {
     "express": "^4.17.1",
-    "pg": "^7.12.1",
-    "pg-hstore": "^2.3.3",
-    "pg-pubsub": "^0.5.0",
-    "puppeteer": "^1.20.0",
-    "sequelize": "^5.21.1"
+    "puppeteer": "^1.20.0"
   },
   "devDependencies": {
     "husky": "^3.0.9",
