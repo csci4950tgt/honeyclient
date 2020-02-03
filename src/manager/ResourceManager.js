@@ -1,6 +1,8 @@
 import path from 'path';
 import { config } from '../index.js';
 
+import fetch from 'node-fetch';
+
 export default class ResourceManager {
   constructor() {
     this.resources = [];
@@ -34,8 +36,6 @@ export default class ResourceManager {
           threatEntries: [{ url: processedURL }],
         },
       };
-
-      const fetch = require('node-fetch');
 
       try {
         fetch(safeBrowsingURL, {
