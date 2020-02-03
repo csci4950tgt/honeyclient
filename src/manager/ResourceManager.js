@@ -7,7 +7,7 @@ export default class ResourceManager {
 
   setupResourceCollection(page, ticket) {
     console.log(`Capturing JS...`);
-    const ticketId = ticket.get('id');
+    const ticketId = ticket.getID();
 
     page.on('response', async response => {
       // extract some information from the response object:

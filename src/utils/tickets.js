@@ -1,12 +1,11 @@
-import db from './db.js';
 import ScreenshotManager from './screenshots.js';
 import ResourceManager from '../manager/ResourceManager.js';
 import getBrowser from '../utils/browser.js';
+import ArtifactManager from '../manager/ArtifactManager.js';
 
 const processTicket = async ticket => {
-  // get important ticket info from db
-  const ticketId = ticket.get('id');
-  const ticketURL = ticket.get('url');
+  const ticketId = ticket.getID();
+  const ticketURL = ticket.getURL();
 
   const resourceManager = new ResourceManager();
 
@@ -22,7 +21,7 @@ const processTicket = async ticket => {
 
   await page.goto(ticketURL);
 
-  // Store all artifacts while processing honeyclient, will eventually store in db
+  // Store all artifacts while processing honeyclient, will eventually return to api
   const artifacts = [];
 
   // process screenshots
@@ -34,19 +33,16 @@ const processTicket = async ticket => {
   // process resources
   artifacts.push(...(await resourceManager.process()));
 
-  // save artifacts to database
-  // TODO: take out this functionality
-  if (!ticket.get('processed')) {
-    await db.saveArtifacts(artifacts);
-  }
+  // store
+  ArtifactManager.storeArtifactsForTicket(artifacts);
 
-  // Close ticket and page
-  await db.closeTicketById(ticketId);
   await page.close();
 
-  // Success
-  console.log(`Finished processing ticket #${ticket.id}.`);
-  return artifacts;
+  // Success, return list of paths
+  return {
+    success: true,
+    fileArtifacts: artifacts.map(ArtifactManager.artifactToPath),
+  };
 };
 
 export default { processTicket };

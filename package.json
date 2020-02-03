@@ -23,12 +23,10 @@
     "node": ">12.0.0"
   },
   "dependencies": {
+    "@limedocs/express-middleware-memfs": "^1.0.0-beta.18",
     "express": "^4.17.1",
-    "pg": "^7.12.1",
-    "pg-hstore": "^2.3.3",
-    "pg-pubsub": "^0.5.0",
-    "puppeteer": "^1.20.0",
-    "sequelize": "^5.21.1"
+    "memfs": "^3.0.4",
+    "puppeteer": "^1.20.0"
   },
   "devDependencies": {
     "husky": "^3.0.9",
