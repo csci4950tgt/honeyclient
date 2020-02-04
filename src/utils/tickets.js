@@ -2,6 +2,7 @@ import ScreenshotManager from './screenshots.js';
 import ResourceManager from '../manager/ResourceManager.js';
 import getBrowser from '../utils/browser.js';
 import ArtifactManager from '../manager/ArtifactManager.js';
+import OCRManager from '../manager/OCRManager.js';
 
 const processTicket = async ticket => {
   const ticketId = ticket.getID();
@@ -28,7 +29,10 @@ const processTicket = async ticket => {
   const defaultUserAgent = await browser.userAgent();
   const ss = new ScreenshotManager(defaultUserAgent);
   const ssArtifacts = await ss.processScreenshots(ticket, page);
+  const ocr = new OCRManager();
+  const ocrArtifacts = await ocr.processImages('eng', ssArtifacts);
   artifacts.push(...ssArtifacts);
+  artifacts.push(...ocrArtifacts);
 
   // process resources
   artifacts.push(...(await resourceManager.process()));
