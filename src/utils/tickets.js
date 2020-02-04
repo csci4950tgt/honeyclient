@@ -53,6 +53,7 @@ const getMalwareMatches = async URLs => {
       return [];
     });
 };
+import OCRManager from '../manager/OCRManager.js';
 
 const processTicket = async ticket => {
   const ticketId = ticket.getID();
@@ -80,7 +81,10 @@ const processTicket = async ticket => {
   const defaultUserAgent = await browser.userAgent();
   const ss = new ScreenshotManager(defaultUserAgent);
   const ssArtifacts = await ss.processScreenshots(ticket, page);
+  const ocr = new OCRManager();
+  const ocrArtifacts = await ocr.processImages('eng', ssArtifacts);
   artifacts.push(...ssArtifacts);
+  artifacts.push(...ocrArtifacts);
 
   // process resources
   const jsArtifacts = await resourceManager.process();
