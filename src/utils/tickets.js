@@ -6,7 +6,7 @@ import { config } from '../index.js';
 
 import fetch from 'node-fetch';
 
-const getSafeBrowsingIndex = async URL => {
+const getMalwareMatches = async URL => {
   console.log(`Getting Google Safe Browsing information...`);
   const safeBrowsingURL =
     'https://safebrowsing.googleapis.com/v4/threatMatches:find?key=' +
@@ -24,26 +24,28 @@ const getSafeBrowsingIndex = async URL => {
     },
   };
 
-  try {
-    const res = await fetch(safeBrowsingURL, {
-      method: 'POST',
-      body: JSON.stringify(request),
-      responseType: 'application/json',
+  return fetch(safeBrowsingURL, {
+    method: 'POST',
+    body: JSON.stringify(request),
+    responseType: 'application/json',
+  })
+    .then(res => {
+      return res.json();
+    })
+    .then(json => {
+      if (json.matches === undefined) {
+        console.log('No malware found');
+        return [];
+      } else {
+        console.log('Malware found');
+        console.log(json.matches);
+        return json.matches;
+      }
+    })
+    .catch(error => {
+      console.log(error);
+      return [];
     });
-    const json = await res.json();
-    if (json.matches === undefined) {
-      console.log('No malware found');
-      return null;
-    } else {
-      const match = json.matches[0];
-      console.log('Malware found:');
-      console.log(match);
-      return match;
-    }
-  } catch (error) {
-    console.log(error);
-    return null;
-  }
 };
 
 const processTicket = async ticket => {
@@ -54,7 +56,7 @@ const processTicket = async ticket => {
   console.log(`URL: ${ticketURL}`);
 
   // Get result from Google Safe Browsing API v4
-  const malwareMatches = getSafeBrowsingIndex(ticketURL);
+  const malwareMatches = getMalwareMatches(ticketURL);
 
   const resourceManager = new ResourceManager();
 
