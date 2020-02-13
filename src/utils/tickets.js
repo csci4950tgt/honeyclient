@@ -11,6 +11,7 @@ const getMalwareMatches = async URL => {
   const safeBrowsingURL =
     'https://safebrowsing.googleapis.com/v4/threatMatches:find?key=' +
     config.google_safe_browsing_api_key;
+  console.log(requestURLList);
   const request = {
     client: {
       clientId: '4950',
@@ -20,7 +21,7 @@ const getMalwareMatches = async URL => {
       threatTypes: ['MALWARE'],
       platformTypes: ['ANY_PLATFORM'],
       threatEntryTypes: ['URL'],
-      threatEntries: [{ url: URL }],
+      threatEntries: requestURLList,
     },
   };
 
@@ -55,9 +56,6 @@ const processTicket = async ticket => {
   console.log(`Starting to process ticket #${ticketId}.`);
   console.log(`URL: ${ticketURL}`);
 
-  // Get result from Google Safe Browsing API v4
-  const malwareMatches = getMalwareMatches(ticketURL);
-
   const resourceManager = new ResourceManager();
 
   // Setup browser
@@ -86,11 +84,14 @@ const processTicket = async ticket => {
 
   await page.close();
 
+  // Get result from Google Safe Browsing API v4
+  const malwareMatches = getMalwareMatches(await resourceManager.getURLs());
+
   // Success, return list of paths
   return {
     success: true,
     fileArtifacts: artifacts.map(ArtifactManager.artifactToPath),
-    malwareMatches: JSON.stringify(await malwareMatches),
+    malwareMatches: JSON.stringify(malwareMatches),
   };
 };
 
