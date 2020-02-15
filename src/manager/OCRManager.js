@@ -1,8 +1,10 @@
+import Tesseract from 'tesseract.js';
+
 export default class OCRManager {
   constructor(lang = 'eng') {
     this._lang = lang;
-    const { createWorker } = require('tesseract.js');
-    this._worker = createWorker();
+    // const { createWorker } = require('tesseract.js');
+    this._worker = Tesseract.createWorker();
   }
 
   getTextFromImage = async (lang = this._lang, screenShot) => {
@@ -17,7 +19,8 @@ export default class OCRManager {
   };
 
   processImages(lang = this._lang, screenShots) {
-    const textArtifacts = [];
+    var textArtifacts = [];
+    var ss;
     for (ss in screenShots) {
       textArtifacts.push(this.getTextFromImage(lang, ss));
     }
