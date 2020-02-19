@@ -14,6 +14,7 @@ Provides functionality for the api, investigates a potentially malicious website
 ## Usage
 
 - Check `node -v` to make sure you're running `node` at least 12.0. Node 13 is preferred.
+- Run `cp config/config.template.json config/config.json` and fill in your API key for Google Safe Browsing in `config/config.json`.
 - Run `npm install` to set up puppeteer.
 - Use `npm start` to run the program.
 - Place files into the `input` directory, based on the syntax of `request.json`.
