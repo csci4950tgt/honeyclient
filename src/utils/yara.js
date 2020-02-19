@@ -1,8 +1,18 @@
 import yara from 'yara';
 
 export default class YaraManager {
-  scanResources = async jsArtifacts => {
+  constructor() {
+    this.resources = [];
+  }
+
+  /*
+   * This Method scans a list of raw js artifacts using
+   * a set of Yara rules. Returns the Js artifacts that match
+   * otherwise, no malware was detected.
+   */
+  setupResourceScan(jsArtifacts, ticket) {
     console.log('Scanning JS...');
+    const ticketId = ticket.getID();
 
     yara.initialize(function(error) {
       if (error) {
@@ -22,34 +32,45 @@ export default class YaraManager {
             if (warnings.length) {
               console.log('Compile warnings: ' + JSON.stringify(warnings));
             } else {
-              // @TODO: Create a legitimate object response on scan to communicate safety back to frontend
               let matchFlag = 0;
+
               jsArtifacts.forEach(js => {
                 const file = js.data.toString();
                 const buf = { buffer: Buffer.from(file) };
-
                 scanner.scan(buf, function(error, result) {
                   if (error) {
                     console.log(error);
                   } else {
                     if (result.rules.length) {
                       matchFlag = 1;
+                      const matchText = 'match: ' + JSON.stringify(result);
 
-                      // this is the meat and potatoes
-                      console.log('match: ' + JSON.stringify(result));
+                      this.resources.push({
+                        ticketId,
+                        filename: js.filename,
+                        data: Buffer.from(matchText, 'utf8'),
+                      });
                     }
                   }
                 });
               });
               if (matchFlag === 0) {
-                console.log(
-                  `Scan of URL with ticket ID ${jsArtifacts[0].ticketId} shows no maliciousness`
-                );
+                const noMatchText = 'no malware detected by scan';
+
+                this.resources.push({
+                  ticketId,
+                  filename: '', //all files
+                  data: Buffer.from(noMatchText, 'utf8'),
+                });
               }
             }
           }
         });
       }
     });
-  };
+  }
+
+  process() {
+    return this.resources;
+  }
 }

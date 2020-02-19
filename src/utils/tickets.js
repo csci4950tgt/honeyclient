@@ -3,6 +3,7 @@ import ResourceManager from '../manager/ResourceManager.js';
 import getBrowser from '../utils/browser.js';
 import ArtifactManager from '../manager/ArtifactManager.js';
 import YaraManager from './yara.js';
+import yara from './yara';
 
 const processTicket = async ticket => {
   const ticketId = ticket.getID();
@@ -36,8 +37,10 @@ const processTicket = async ticket => {
   const jsArtifacts = await resourceManager.process();
   artifacts.push(...jsArtifacts);
 
-  // scan resources
-  await yaraManager.scanResources(jsArtifacts);
+  // scan js
+  yaraManager.setupResourceScan(jsArtifacts, ticket);
+  const yaraArtifacts = await yaraManager.process();
+  artifacts.push(...yaraArtifacts);
 
   // store
   ArtifactManager.storeArtifactsForTicket(artifacts);
