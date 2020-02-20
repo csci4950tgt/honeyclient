@@ -1,6 +1,5 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import path from 'path';
 import cors from 'cors';
 
 // Routes
@@ -8,7 +7,7 @@ import ticketRouter from './routes/ticket.js';
 import artifactRouter from './routes/artifact.js';
 
 // Use environment variables in projects
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config();
 
 // Port
 const port = process.env.PORT || 8000;
