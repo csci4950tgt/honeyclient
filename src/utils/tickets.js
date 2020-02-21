@@ -6,11 +6,16 @@ import { config } from '../index.js';
 
 import fetch from 'node-fetch';
 
-const getMalwareMatches = async requestURLList => {
+const getMalwareMatches = async URLs => {
   console.log(`Getting Google Safe Browsing information...`);
   const safeBrowsingURL =
     'https://safebrowsing.googleapis.com/v4/threatMatches:find?key=' +
     config.google_safe_browsing_api_key;
+  const requestURLList = URLs.map(entry => {
+    const container = {};
+    container['url'] = entry;
+    return container;
+  });
   const request = {
     client: {
       clientId: '4950',
@@ -84,7 +89,9 @@ const processTicket = async ticket => {
   await page.close();
 
   // Get result from Google Safe Browsing API v4
-  const malwareMatches = getMalwareMatches(await resourceManager.getURLs());
+  const malwareMatches = await getMalwareMatches(
+    await resourceManager.getURLs()
+  );
 
   // Success, return list of paths
   return {
