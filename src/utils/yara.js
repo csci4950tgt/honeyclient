@@ -14,32 +14,47 @@ export default class YaraManager {
     console.log('Scanning JS...');
     const ticketId = ticket.getID();
 
-    yara.initialize(function(error) {
+    yara.initialize(error => {
       if (error) {
         console.log(error.message);
       } else {
         const rules = [{ filename: 'src/resources/rules.yara' }];
 
         const scanner = yara.createScanner();
-        scanner.configure({ rules: rules }, function(error, warnings) {
+        scanner.configure({ rules: rules }, (error, warnings) => {
           if (error) {
             if (error instanceof yara.CompileRulesError) {
               console.log(error.message + ': ' + JSON.stringify(error.errors));
             } else {
               console.log(error.message);
             }
+
+            this.resources.push({
+              ticketId,
+              filename: 'yara_error.txt',
+              data: Buffer.from(JSON.stringify('error'), 'utf8'),
+            });
           } else {
             if (warnings.length) {
               console.log('Compile warnings: ' + JSON.stringify(warnings));
+
+              this.resources.push({
+                ticketId,
+                filename: 'yara_error.txt',
+                data: { error: true },
+              });
             } else {
               let matchFlag = 0;
 
               jsArtifacts.forEach(js => {
-                const file = js.data.toString();
                 const buf = { buffer: Buffer.from(file) };
-                scanner.scan(buf, function(error, result) {
+                scanner.scan(buf, (error, result) => {
                   if (error) {
-                    console.log(error);
+                    this.resources.push({
+                      ticketId,
+                      filename: js.filename,
+                      data: Buffer.from(error, 'utf8'),
+                    });
                   } else {
                     if (result.rules.length) {
                       matchFlag = 1;
@@ -55,12 +70,10 @@ export default class YaraManager {
                 });
               });
               if (matchFlag === 0) {
-                const noMatchText = 'no malware detected by scan';
-
                 this.resources.push({
                   ticketId,
-                  filename: '', //all files
-                  data: Buffer.from(noMatchText, 'utf8'),
+                  filename: 'safe_by_yara.txt',
+                  data: { isMaliciousByYara: false },
                 });
               }
             }
