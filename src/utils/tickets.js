@@ -3,7 +3,6 @@ import ResourceManager from '../manager/ResourceManager.js';
 import getBrowser from '../utils/browser.js';
 import ArtifactManager from '../manager/ArtifactManager.js';
 import YaraManager from './yara.js';
-import { config } from '../index.js';
 
 import fetch from 'node-fetch';
 
