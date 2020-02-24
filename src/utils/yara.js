@@ -15,6 +15,7 @@ export default class YaraManager {
    *
    * When pushing errors to the RO data buffer:
    *      error: boolean (whether or not an error has occurred in processing)
+   *      matchedRule: only valid if (isMalicious == true)
    *      isMalicious: boolean, null if unknown
    */
   setupResourceScan(jsArtifacts, ticket) {
@@ -32,6 +33,7 @@ export default class YaraManager {
             JSON.stringify({
               error: true,
               isMalicious: null,
+              matchedRule: null,
             }),
             'utf8'
           ),
@@ -56,6 +58,7 @@ export default class YaraManager {
                 JSON.stringify({
                   error: true,
                   isMalicious: null,
+                  matchedRule: '',
                 }),
                 'utf8'
               ),
@@ -71,6 +74,7 @@ export default class YaraManager {
                   JSON.stringify({
                     error: true,
                     isMalicious: null,
+                    matchedRule: '',
                   }),
                   'utf8'
                 ),
@@ -88,6 +92,7 @@ export default class YaraManager {
                         JSON.stringify({
                           error: true,
                           isMalicious: null,
+                          matchedRule: '',
                         }),
                         'utf8'
                       ),
@@ -100,7 +105,14 @@ export default class YaraManager {
                       this.resources.push({
                         ticketId,
                         filename: js.filename,
-                        data: Buffer.from(matchText, 'utf8'),
+                        data: Buffer.from(
+                          JSON.stringify({
+                            error: false,
+                            isMalicious: true,
+                            matchedRule: matchText,
+                          }),
+                          'utf8'
+                        ),
                       });
                     }
                   }
@@ -115,6 +127,7 @@ export default class YaraManager {
                     JSON.stringify({
                       error: false,
                       isMalicious: false,
+                      matchedRule: '',
                     }),
                     'utf8'
                   ),
