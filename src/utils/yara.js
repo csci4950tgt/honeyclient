@@ -21,26 +21,17 @@ export default class YaraManager {
   setupResourceScan(jsArtifacts, ticket) {
     console.log('Scanning JS...');
     const ticketId = ticket.getID();
+    const responseFile = 'yara_response.txt';
 
     yara.initialize(error => {
       if (error) {
         console.log(error.message);
 
-        this.resources.push({
-          ticketId,
-          filename: 'yara_error.txt',
-          data: Buffer.from(
-            JSON.stringify({
-              error: true,
-              isMalicious: null,
-              matchedRule: null,
-            }),
-            'utf8'
-          ),
-        });
+        this.resources.push(
+          this.createYaraArtifact(ticketId, responseFile, true)
+        );
       } else {
         const rules = [{ filename: 'src/resources/rules.yara' }];
-
         const scanner = yara.createScanner();
 
         scanner.configure({ rules: rules }, (error, warnings) => {
@@ -51,93 +42,78 @@ export default class YaraManager {
               console.log(error.message);
             }
 
-            this.resources.push({
-              ticketId,
-              filename: 'yara_error.txt',
-              data: Buffer.from(
-                JSON.stringify({
-                  error: true,
-                  isMalicious: null,
-                  matchedRule: '',
-                }),
-                'utf8'
-              ),
-            });
+            this.resources.push(
+              this.createYaraArtifact(ticketId, responseFile, true)
+            );
           } else {
             if (warnings.length) {
               console.log('Compile warnings: ' + JSON.stringify(warnings));
 
-              this.resources.push({
-                ticketId,
-                filename: 'yara_error.txt',
-                data: Buffer.from(
-                  JSON.stringify({
-                    error: true,
-                    isMalicious: null,
-                    matchedRule: '',
-                  }),
-                  'utf8'
-                ),
-              });
+              this.resources.push(
+                this.createYaraArtifact(ticketId, responseFile, true)
+              );
             } else {
               let matchFlag = 0;
+
               jsArtifacts.forEach(js => {
-                const buf = { buffer: Buffer.from(file) };
+                const buf = { buffer: Buffer.from(js) };
                 scanner.scan(buf, (error, result) => {
                   if (error) {
-                    this.resources.push({
-                      ticketId,
-                      filename: js.filename,
-                      data: Buffer.from(
-                        JSON.stringify({
-                          error: true,
-                          isMalicious: null,
-                          matchedRule: '',
-                        }),
-                        'utf8'
-                      ),
-                    });
+                    this.resources.push(
+                      this.createYaraArtifact(ticketId, js.filename, true)
+                    );
                   } else {
                     if (result.rules.length) {
                       matchFlag = 1;
                       const matchText = 'match: ' + JSON.stringify(result);
 
-                      this.resources.push({
-                        ticketId,
-                        filename: js.filename,
-                        data: Buffer.from(
-                          JSON.stringify({
-                            error: false,
-                            isMalicious: true,
-                            matchedRule: matchText,
-                          }),
-                          'utf8'
-                        ),
-                      });
+                      this.resources.push(
+                        this.createYaraArtifact(
+                          ticketId,
+                          js.filename,
+                          false,
+                          true,
+                          matchText
+                        )
+                      );
                     }
                   }
                 });
               });
-
               if (matchFlag === 0) {
-                this.resources.push({
-                  ticketId,
-                  filename: 'safe_by_yara.txt',
-                  data: Buffer.from(
-                    JSON.stringify({
-                      error: false,
-                      isMalicious: false,
-                      matchedRule: '',
-                    }),
-                    'utf8'
-                  ),
-                });
+                this.resources.push(
+                  this.createYaraArtifact(ticketId, responseFile, false, false)
+                );
               }
             }
           }
         });
       }
     });
+  }
+
+  /*
+   * Helper for creating a JSON response from a scan result.
+   */
+  createYaraArtifact(
+    ticketID,
+    filename,
+    error,
+    isMalicious = null,
+    matchedRule = null
+  ) {
+    return {
+      ticketID,
+      filename: filename,
+      data: Buffer.from(
+        JSON.stringify({
+          error: error,
+          isMalicious: isMalicious,
+          matchedRule: matchedRule,
+        }),
+        'utf8'
+      ),
+    };
   }
 
   process() {
