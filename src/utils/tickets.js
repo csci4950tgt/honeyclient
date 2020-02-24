@@ -2,10 +2,10 @@ import ScreenshotManager from './screenshots.js';
 import ResourceManager from '../manager/ResourceManager.js';
 import getBrowser from '../utils/browser.js';
 import ArtifactManager from '../manager/ArtifactManager.js';
+import YaraManager from './yara.js';
 import fetch from 'node-fetch';
-import fs from 'fs';
 
-const getMalwareMatches = async requestURLList => {
+const getMalwareMatches = async URLs => {
   // Get Google Safe Browsing key
   const google_safe_browsing_api_key = process.env.GOOGLE_SAFE_BROWSING_API_KEY;
   if (!google_safe_browsing_api_key) {
@@ -21,6 +21,11 @@ const getMalwareMatches = async requestURLList => {
   const safeBrowsingURL =
     'https://safebrowsing.googleapis.com/v4/threatMatches:find?key=' +
     google_safe_browsing_api_key;
+  const requestURLList = URLs.map(entry => {
+    const container = {};
+    container['url'] = entry;
+    return container;
+  });
   const request = {
     client: {
       clientId: '4950',
@@ -60,10 +65,11 @@ const processTicket = async ticket => {
   const ticketId = ticket.getID();
   const ticketURL = ticket.getURL();
 
+  const resourceManager = new ResourceManager();
+  const yaraManager = new YaraManager();
+
   console.log(`Starting to process ticket #${ticketId}.`);
   console.log(`URL: ${ticketURL}`);
-
-  const resourceManager = new ResourceManager();
 
   // Setup browser
   const browser = await getBrowser();
@@ -84,7 +90,13 @@ const processTicket = async ticket => {
   artifacts.push(...ssArtifacts);
 
   // process resources
-  artifacts.push(...(await resourceManager.process()));
+  const jsArtifacts = await resourceManager.process();
+  artifacts.push(...jsArtifacts);
+
+  // scan js
+  yaraManager.setupResourceScan(jsArtifacts, ticket);
+  const yaraArtifacts = await yaraManager.process();
+  artifacts.push(...yaraArtifacts);
 
   // store
   ArtifactManager.storeArtifactsForTicket(artifacts);
