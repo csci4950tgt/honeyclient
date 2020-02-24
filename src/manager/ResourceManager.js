@@ -3,6 +3,7 @@ import path from 'path';
 export default class ResourceManager {
   constructor() {
     this.resources = [];
+    this.urls = [];
   }
 
   setupResourceCollection(page, ticket) {
@@ -15,14 +16,20 @@ export default class ResourceManager {
       const status = response.status();
       const ok = response.ok();
 
+      if (ok) {
+        this.urls.push(url);
+      }
+
       // use hostname/filename as identifier:
       const processedURL = new URL(url);
+
       const hostname = processedURL.hostname;
       // grab the filename from the path specifier:
       const filename = processedURL.pathname.substring(
         processedURL.pathname.lastIndexOf('/') + 1
       );
       let identifier = `${hostname}/${filename}`;
+      console.log(identifier);
 
       // handle 2 objects with same identifier:
       const pathParsed = path.parse(filename);
@@ -48,5 +55,9 @@ export default class ResourceManager {
 
   process() {
     return this.resources;
+  }
+
+  getURLs() {
+    return this.urls;
   }
 }

@@ -27,7 +27,8 @@
     "express": "^4.17.1",
     "memfs": "^3.0.4",
     "puppeteer": "^1.20.0",
-    "yara": "^2.2.0"
+    "yara": "^2.2.0",
+    "node-fetch": "^2.6.0"
   },
   "devDependencies": {
     "husky": "^3.0.9",

@@ -3,6 +3,56 @@ import ResourceManager from '../manager/ResourceManager.js';
 import getBrowser from '../utils/browser.js';
 import ArtifactManager from '../manager/ArtifactManager.js';
 import YaraManager from './yara.js';
+import { config } from '../index.js';
+
+import fetch from 'node-fetch';
+
+const getMalwareMatches = async URLs => {
+  console.log(`Getting Google Safe Browsing information...`);
+  const safeBrowsingURL =
+    'https://safebrowsing.googleapis.com/v4/threatMatches:find?key=' +
+    config.google_safe_browsing_api_key;
+  const requestURLList = URLs.map(entry => {
+    const container = {};
+    container['url'] = entry;
+    return container;
+  });
+  const request = {
+    client: {
+      clientId: '4950',
+      clientVersion: '0.0.1',
+    },
+    threatInfo: {
+      threatTypes: ['MALWARE'],
+      platformTypes: ['ANY_PLATFORM'],
+      threatEntryTypes: ['URL'],
+      threatEntries: requestURLList,
+    },
+  };
+
+  return fetch(safeBrowsingURL, {
+    method: 'POST',
+    body: JSON.stringify(request),
+    responseType: 'application/json',
+  })
+    .then(res => {
+      return res.json();
+    })
+    .then(json => {
+      if (json.matches === undefined) {
+        console.log('No malware found');
+        return [];
+      } else {
+        console.log('Malware found');
+        console.log(json.matches);
+        return json.matches;
+      }
+    })
+    .catch(error => {
+      console.log(error);
+      return [];
+    });
+};
 
 const processTicket = async ticket => {
   const ticketId = ticket.getID();
@@ -46,10 +96,16 @@ const processTicket = async ticket => {
 
   await page.close();
 
+  // Get result from Google Safe Browsing API v4
+  const malwareMatches = await getMalwareMatches(
+    await resourceManager.getURLs()
+  );
+
   // Success, return list of paths
   return {
     success: true,
     fileArtifacts: artifacts.map(ArtifactManager.artifactToPath),
+    malwareMatches: JSON.stringify(malwareMatches),
   };
 };
 
