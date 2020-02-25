@@ -15,6 +15,8 @@ export default class OCRManager {
       data: { text },
     } = await this._worker.recognize(screenShot);
     await this._worker.terminate();
+    console.log('Here.');
+    console.log(text);
     return text;
   };
 

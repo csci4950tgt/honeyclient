@@ -82,7 +82,7 @@ const processTicket = async ticket => {
   const ss = new ScreenshotManager(defaultUserAgent);
   const ssArtifacts = await ss.processScreenshots(ticket, page);
   const ocr = new OCRManager();
-  const ocrArtifacts = await ocr.processImages('eng', ssArtifacts);
+  const ocrArtifacts = await ocr.processImages('eng', ssArtifacts.data);
   artifacts.push(...ssArtifacts);
   artifacts.push(...ocrArtifacts);
 
