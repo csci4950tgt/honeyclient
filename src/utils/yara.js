@@ -21,7 +21,7 @@ export default class YaraManager {
   setupResourceScan(jsArtifacts, ticket) {
     console.log('Scanning JS...');
     const ticketId = ticket.getID();
-    const responseFile = 'yara_response.txt';
+    const responseFile = 'response.yara';
 
     yara.initialize(error => {
       if (error) {
@@ -99,7 +99,7 @@ export default class YaraManager {
     ticketID,
     filename,
     error,
-    isMalicious = null,
+    malFlag = null,
     matchedRule = null
   ) {
     return {
@@ -108,7 +108,7 @@ export default class YaraManager {
       data: Buffer.from(
         JSON.stringify({
           error: error,
-          isMalicious: isMalicious,
+          malFlag: malFlag,
           matchedRule: matchedRule,
         }),
         'utf8'
