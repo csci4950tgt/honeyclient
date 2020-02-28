@@ -2,7 +2,7 @@
 FROM node:12-slim
 
 # Install Yara
-RUN apt-get update && apt-get install -y libyara-dev
+RUN apt-get update && apt-get install -y libyara-dev python3 build-essential
 
 ######### PART 1: PUPPETEER #########
 
@@ -53,7 +53,8 @@ CMD ["google-chrome-unstable"]
 COPY . .
 
 # Install honeyclient dependencies (from package.json)
-RUN npm install --production --silent
+# RUN npm install --production --silent
+RUN npm install --production
 
 # Run app
 CMD npm run start
