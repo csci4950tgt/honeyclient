@@ -2,30 +2,28 @@ import Tesseract from 'tesseract.js';
 
 export default class OCRManager {
   constructor(lang = 'eng') {
-    this._lang = lang;
-    // const { createWorker } = require('tesseract.js');
-    this._worker = Tesseract.createWorker();
+    this.lang = lang;
+    this.worker = Tesseract.createWorker();
   }
 
-  getTextFromImage = async (lang = this._lang, screenShot) => {
-    await this._worker.load();
-    await this._worker.loadLanguage(lang);
-    await this._worker.initialize(lang);
+  async getTextFromImage(lang = this.lang, screenShot) {
+    await this.worker.load();
+    await this.worker.loadLanguage(lang);
+    await this.worker.initialize(lang);
+
     const {
       data: { text },
-    } = await this._worker.recognize(screenShot);
-    await this._worker.terminate();
-    console.log('Here.');
-    console.log(text);
-    return text;
-  };
+    } = await this.worker.recognize(screenShot);
 
-  processImages(lang = this._lang, screenShots) {
-    var textArtifacts = [];
-    var ss;
-    for (ss in screenShots) {
-      textArtifacts.push(this.getTextFromImage(lang, ss));
-    }
-    return textArtifacts;
+    await this.worker.terminate();
+
+    console.log(`Recognized the following text in image: ${text}`);
+    console.log(text);
+
+    return text;
+  }
+
+  processImages(lang = this.lang, screenshots) {
+    return screenshots.map(ss => this.getTextFromImage(lang, ss));
   }
 }
