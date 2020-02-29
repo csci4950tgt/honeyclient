@@ -4,17 +4,6 @@ import getBrowser from '../utils/browser.js';
 import ArtifactManager from '../manager/ArtifactManager.js';
 import OCRManager from '../manager/OCRManager.js';
 
-// singleton
-const ocrManager = new OCRManager();
-
-(async () => {
-  console.log('Preparing OCR manager...');
-
-  await ocrManager.init();
-
-  console.log('Done.');
-})();
-
 const processTicket = async ticket => {
   const ticketId = ticket.getID();
   const ticketURL = ticket.getURL();
@@ -39,10 +28,7 @@ const processTicket = async ticket => {
   // process screenshots
   const defaultUserAgent = await browser.userAgent();
   const ss = new ScreenshotManager(defaultUserAgent);
-
-  // only delays if ticket is requested close to startup time
-  await ocrManager.waitUntilReady();
-
+  const ocrManager = new OCRManager();
   const ssArtifacts = await ss.processScreenshots(ticket, page);
   const ocrArtifacts = await ocrManager.processImages(ssArtifacts);
 
