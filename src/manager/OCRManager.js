@@ -7,7 +7,10 @@ class OCRReadyEmitter extends EventEmitter {}
 export default class OCRManager {
   constructor(lang = 'eng') {
     this.lang = lang;
-    this.worker = Tesseract.createWorker();
+    this.worker = Tesseract.createWorker({
+      logger: m => console.log(m),
+      errorHandler: m => console.error(m),
+    });
     this.ready = false;
     this.readyEmitter = new OCRReadyEmitter();
   }
@@ -33,19 +36,23 @@ export default class OCRManager {
   }
 
   async getTextFromImage(screenshot) {
-    console.log(screenshot);
+    console.log(`Start recognition process for ${screenshot.filename}.`);
 
     const res = await this.worker.recognize(screenshot.data);
 
-    console.log(res);
-
     console.log(`Recognized the following text in image: ${res.data.text}`);
 
-    return res.data.text;
+    // assemble a file artifact-like object
+    return {
+      ticketId: screenshot.ticketId,
+      filename: `recognize-${screenshot.filename}.ocr`,
+      data: Buffer.from(res.data.text),
+    };
   }
 
   processImages(screenshots) {
     // use Promise.all to wait for all screenshots to process
+    // also does work in parallel
     return Promise.all(screenshots.map(ss => this.getTextFromImage(ss)));
   }
 
