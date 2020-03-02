@@ -91,9 +91,8 @@ rule possible_includes_base64_packed_functions {
       desc = "Detects possible includes and packed functions"
   strings:
       $f = /(atob|btoa|;base64|base64,)/ nocase
-      $fff = /([A-Za-z0-9]{4})*([A-Za-z0-9]{2}==|[A-Za-z0-9]{3}=|[A-Za-z0-9]{4})/
   condition:
-      $f and $fff
+      $f
   }
 
 rule dean_edwards : obfuscator {

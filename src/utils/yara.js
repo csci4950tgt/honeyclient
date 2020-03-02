@@ -25,7 +25,7 @@ export default class YaraManager {
 
     yara.initialize(error => {
       if (error) {
-        console.log(error.message);
+        console.log('Yara initialization error: ' + error.message);
 
         this.resources.push(
           this.createYaraArtifact(ticketId, responseFile, true)
@@ -37,9 +37,14 @@ export default class YaraManager {
         scanner.configure({ rules: rules }, (error, warnings) => {
           if (error) {
             if (error instanceof yara.CompileRulesError) {
-              console.log(error.message + ': ' + JSON.stringify(error.errors));
+              console.log(
+                'Yara configuration error: ' +
+                  error.message +
+                  ': ' +
+                  JSON.stringify(error.errors)
+              );
             } else {
-              console.log(error.message);
+              console.log('Yara configuration error: ' + error.message);
             }
 
             this.resources.push(
@@ -56,29 +61,45 @@ export default class YaraManager {
               let matchFlag = 0;
 
               jsArtifacts.forEach(js => {
-                const buf = { buffer: Buffer.from(js) };
-                scanner.scan(buf, (error, result) => {
-                  if (error) {
-                    this.resources.push(
-                      this.createYaraArtifact(ticketId, js.filename, true)
-                    );
-                  } else {
-                    if (result.rules.length) {
-                      matchFlag = 1;
-                      const matchText = 'match: ' + JSON.stringify(result);
-
+                try {
+                  const buf = { buffer: js.data };
+                  scanner.scan(buf, (error, result) => {
+                    if (error) {
                       this.resources.push(
                         this.createYaraArtifact(
                           ticketId,
-                          js.filename,
-                          false,
-                          true,
-                          matchText
+                          js.filename + '.yara',
+                          true
                         )
                       );
+                    } else {
+                      if (result.rules.length) {
+                        matchFlag = 1;
+                        const matchText = 'match: ' + JSON.stringify(result);
+
+                        this.resources.push(
+                          this.createYaraArtifact(
+                            ticketId,
+                            js.filename,
+                            false,
+                            true,
+                            matchText
+                          )
+                        );
+                      }
                     }
-                  }
-                });
+                  });
+                } catch (e) {
+                  console.log('Error in scanning: ' + e);
+                  this.resources.push(
+                    this.createYaraArtifact(
+                      ticketId,
+                      responseFile,
+                      false,
+                      false
+                    )
+                  );
+                }
               });
               if (matchFlag === 0) {
                 this.resources.push(

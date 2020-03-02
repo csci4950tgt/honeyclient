@@ -29,7 +29,7 @@ export default class ResourceManager {
         processedURL.pathname.lastIndexOf('/') + 1
       );
       let identifier = `${hostname}/${filename}`;
-      console.log(identifier);
+      //console.log(identifier);
 
       // handle 2 objects with same identifier:
       const pathParsed = path.parse(filename);

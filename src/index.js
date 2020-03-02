@@ -21,7 +21,7 @@ let config;
 export { config };
 try {
   console.log('Reading config file.');
-  let data = fs.readFileSync('./config/config.json');
+  let data = fs.readFileSync('./config/config.template.json');
   config = JSON.parse(data);
 } catch (err) {
   console.log(`Error when reading config file: ${err.message}. Exit now.`);
