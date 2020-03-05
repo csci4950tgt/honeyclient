@@ -12,7 +12,7 @@ Provides functionality for the api, investigates a potentially malicious website
 ## Usage
 
 - Check `node -v` to make sure you're running `node` at least 12.0. Node 13 is preferred.
-- Run `cp config/config.template.json config/config.json` and fill in your API key for Google Safe Browsing in `config/config.json`.
+- Run `cp .env.template .env` and fill in your API key for Google Safe Browsing in `.env`.
 - Run `npm install` to set up dependencies.
 - On macOS, use `brew install yara` and `brew install tesseract` to set up native dependencies. On other platforms, use corresponding versions from your system's package manager.
 - Use `npm start` to run the program.
