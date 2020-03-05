@@ -1,8 +1,8 @@
 # Must be node 12 or greater
 FROM node:12-slim
 
-# Install Yara
-RUN apt-get update && apt-get install -y libyara-dev python3 build-essential
+# Install Yara and Tessaract
+RUN apt-get update && apt-get install -y libyara-dev python3 build-essential tesseract-ocr imagemagick
 
 ######### PART 1: PUPPETEER #########
 
