@@ -3,15 +3,24 @@ import ResourceManager from '../manager/ResourceManager.js';
 import getBrowser from '../utils/browser.js';
 import ArtifactManager from '../manager/ArtifactManager.js';
 import YaraManager from './yara.js';
-import { config } from '../index.js';
-
 import fetch from 'node-fetch';
 
 const getMalwareMatches = async URLs => {
+  // Get Google Safe Browsing key
+  const google_safe_browsing_api_key = process.env.GOOGLE_SAFE_BROWSING_API_KEY;
+  if (!google_safe_browsing_api_key) {
+    console.error(
+      `You need an environment variable for GOOGLE_SAFE_BROWSING_API_KEY. Please check slack for this key.
+    Quiting honeyclient now.`
+    );
+    process.exit();
+  }
+
+  // Make request to Google safe browsing
   console.log(`Getting Google Safe Browsing information...`);
   const safeBrowsingURL =
     'https://safebrowsing.googleapis.com/v4/threatMatches:find?key=' +
-    config.google_safe_browsing_api_key;
+    google_safe_browsing_api_key;
   const requestURLList = URLs.map(entry => {
     const container = {};
     container['url'] = entry;
@@ -30,28 +39,26 @@ const getMalwareMatches = async URLs => {
     },
   };
 
-  return fetch(safeBrowsingURL, {
-    method: 'POST',
-    body: JSON.stringify(request),
-    responseType: 'application/json',
-  })
-    .then(res => {
-      return res.json();
-    })
-    .then(json => {
-      if (json.matches === undefined) {
-        console.log('No malware found');
-        return [];
-      } else {
-        console.log('Malware found');
-        console.log(json.matches);
-        return json.matches;
-      }
-    })
-    .catch(error => {
-      console.log(error);
-      return [];
+  try {
+    // Parse request
+    const res = await fetch(safeBrowsingURL, {
+      method: 'POST',
+      body: JSON.stringify(request),
+      responseType: 'application/json',
     });
+    const json = res.json();
+    if (!json.matches) {
+      console.log('No Malware found');
+      return [];
+    } else {
+      console.log('Malware found');
+      console.log(json.matches);
+      return json.matches;
+    }
+  } catch (err) {
+    console.error(error);
+    throw Error(err.message);
+  }
 };
 import OCRManager from '../manager/OCRManager.js';
 
@@ -102,9 +109,8 @@ const processTicket = async ticket => {
   await page.close();
 
   // Get result from Google Safe Browsing API v4
-  const malwareMatches = await getMalwareMatches(
-    await resourceManager.getURLs()
-  );
+  const urls = await resourceManager.getURLs();
+  const malwareMatches = await getMalwareMatches(urls);
 
   // Success, return list of paths
   return {
