@@ -6,16 +6,13 @@ Provides functionality for the api, investigates a potentially malicious website
 
 - Grabs screenshots of the target URL, with customizable browser viewport (width/height)
 - Accepts a User-Agent string to pass to the website
-
-### Upcoming
-
-- Beautified JS: Web service will include a JS package to beautify JS string
+- Does OCR on site screenshots
+- Checks retrieved resources against Google safe browsing database
 
 ## Usage
 
 - Check `node -v` to make sure you're running `node` at least 12.0. Node 13 is preferred.
-- Run `cp config/config.template.json config/config.json` and fill in your API key for Google Safe Browsing in `config/config.json`.
-- Run `npm install` to set up puppeteer.
+- Run `cp .env.template .env` and fill in your API key for Google Safe Browsing in `.env`.
+- Run `npm install` to set up dependencies.
+- On macOS, use `brew install yara` and `brew install tesseract` to set up native dependencies. On other platforms, use corresponding versions from your system's package manager.
 - Use `npm start` to run the program.
-- Place files into the `input` directory, based on the syntax of `request.json`.
-- Look in the `output/` directory, the filename of the input will match to the output
