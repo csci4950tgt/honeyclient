@@ -48,6 +48,7 @@ const processTicket = async ticket => {
     safeBrowsingManager.getMalwareMatches(urls),
   ]);
 
+  artifacts.push(...ssArtifacts); // screenshots
   artifacts.push(...asyncArtifacts[0]); // ocr
   artifacts.push(...asyncArtifacts[1]); // yara
 
