@@ -10,7 +10,6 @@ export default class ResourceManager extends AsyncWorker {
   }
 
   setupResourceCollection(page, ticket) {
-    console.log(`Capturing JS...`);
     const ticketId = ticket.getID();
     this.start();
 
@@ -19,6 +18,8 @@ export default class ResourceManager extends AsyncWorker {
       const url = response.url();
       const status = response.status();
       const ok = response.ok();
+
+      console.log(`${status} ${url}`);
 
       if (ok) {
         this.urls.push(url);
@@ -33,7 +34,6 @@ export default class ResourceManager extends AsyncWorker {
         processedURL.pathname.lastIndexOf('/') + 1
       );
       let identifier = `${hostname}/${filename}`;
-      console.log(identifier);
 
       // handle 2 objects with same identifier:
       const pathParsed = path.parse(filename);
@@ -59,6 +59,8 @@ export default class ResourceManager extends AsyncWorker {
     // load event is emitted when resources are finished loading for the page
     // https://developer.mozilla.org/en-US/docs/Web/API/Window/load_event
     page.on('load', () => {
+      console.log('Page emitted load event.');
+
       super.ready();
       super.finish();
     });

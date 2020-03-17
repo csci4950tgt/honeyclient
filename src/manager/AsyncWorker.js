@@ -12,6 +12,8 @@ export default class AsyncWorker {
   }
 
   start() {
+    console.log(`Start operation ${this.operation}.`);
+
     this.wallClock = Date.now();
   }
 

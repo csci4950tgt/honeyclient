@@ -48,7 +48,6 @@ export default class YaraManager extends AsyncWorker {
    *      isMalicious: boolean, null if unknown
    */
   async setupResourceScan(jsArtifacts, ticket) {
-    console.log('Scanning JS...');
     super.start();
 
     const ticketId = ticket.getID();

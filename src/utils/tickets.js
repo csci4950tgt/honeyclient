@@ -24,7 +24,6 @@ const processTicket = async ticket => {
   const page = await browser.newPage();
   resourceManager.setupResourceCollection(page, ticket);
 
-  console.log('Visiting page.');
   await page.goto(ticketURL);
 
   // Store all artifacts while processing honeyclient, will eventually return to api

@@ -14,7 +14,6 @@ class ScreenshotManager extends AsyncWorker {
   // Processes all screenshots for a ticket and returns artifacts
   processScreenshots = async (ticket, page) => {
     super.start();
-    console.log('Capturing screenshots...');
     this.ticket = ticket;
 
     const ssArtifacts = [];
@@ -47,13 +46,11 @@ class ScreenshotManager extends AsyncWorker {
     // capture screenshot
     const data = await page.screenshot({ fullPage: true });
     // create artifact object to return
-    const artifact = {
+    return {
       ticketId: ss.ticketId,
       filename: ss.filename,
       data,
     };
-
-    return artifact;
   };
 
   // process custom screenshots of ticket and return artifacts

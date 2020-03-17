@@ -45,8 +45,6 @@ export default class SafeBrowsingManager extends AsyncWorker {
     };
 
     try {
-      console.log(`Getting Google Safe Browsing information...`);
-
       // Parse request
       const json = await fetch(safeBrowsingURL, {
         method: 'POST',
