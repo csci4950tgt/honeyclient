@@ -34,32 +34,33 @@ const processTicket = async ticket => {
   const jsArtifacts = await resourceManager.process();
   artifacts.push(...jsArtifacts);
 
-  // process screenshots
+  // needed for safe browsing:
+  const urls = resourceManager.getURLs();
+
+  // process screenshots. ocr depends on this, so doing in sync...
   const ssArtifacts = await ssManager.processScreenshots(ticket, page);
-  const ocrArtifacts = await ocrManager.processImages(ssArtifacts);
 
-  artifacts.push(...ssArtifacts);
-  artifacts.push(...ocrArtifacts);
+  // do next 3 tasks in parallel using Promise.all.
+  // ocr, yara, safe browsing API
+  const asyncArtifacts = await Promise.all([
+    ocrManager.processImages(ssArtifacts),
+    yaraManager.setupResourceScan(jsArtifacts, ticket),
+    safeBrowsingManager.getMalwareMatches(urls),
+  ]);
 
-  // scan js
-  await yaraManager.setupResourceScan(jsArtifacts, ticket);
-  const yaraArtifacts = yaraManager.process();
-  artifacts.push(...yaraArtifacts);
+  artifacts.push(...asyncArtifacts[0]); // ocr
+  artifacts.push(...asyncArtifacts[1]); // yara
 
   // store
   ArtifactManager.storeArtifactsForTicket(artifacts);
 
   await page.close();
 
-  // Get result from Google Safe Browsing API v4
-  const urls = resourceManager.getURLs();
-  const malwareMatches = await safeBrowsingManager.getMalwareMatches(urls);
-
   // Success, return list of paths
   return {
     success: true,
     fileArtifacts: artifacts.map(ArtifactManager.artifactToPath),
-    malwareMatches: JSON.stringify(malwareMatches),
+    malwareMatches: JSON.stringify(asyncArtifacts[2]),
   };
 };
 
