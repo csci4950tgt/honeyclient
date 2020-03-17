@@ -1,7 +1,10 @@
 import path from 'path';
+import AsyncWorker from './AsyncWorker.js';
 
-export default class ResourceManager {
+export default class ResourceManager extends AsyncWorker {
   constructor() {
+    super();
+
     this.resources = [];
     this.urls = [];
   }
@@ -51,9 +54,17 @@ export default class ResourceManager {
         });
       }
     });
+
+    // load event is emitted when resources are finished loading for the page
+    // https://developer.mozilla.org/en-US/docs/Web/API/Window/load_event
+    page.on('load', () => {
+      super.ready();
+    });
   }
 
-  process() {
+  async process() {
+    await super.waitUntilReady();
+
     return this.resources;
   }
 
