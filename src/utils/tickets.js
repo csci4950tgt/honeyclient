@@ -1,4 +1,4 @@
-import ScreenshotManager from './screenshots.js';
+import ScreenshotManager from '../manager/ScreenshotManager.js';
 import ResourceManager from '../manager/ResourceManager.js';
 import getBrowser from '../utils/browser.js';
 import ArtifactManager from '../manager/ArtifactManager.js';
@@ -55,6 +55,10 @@ const processTicket = async ticket => {
   ArtifactManager.storeArtifactsForTicket(artifacts);
 
   await page.close();
+
+  console.log(
+    `Finished processing #${ticketId}, ${artifacts.length} artifacts stored.`
+  );
 
   // Success, return list of paths
   return {

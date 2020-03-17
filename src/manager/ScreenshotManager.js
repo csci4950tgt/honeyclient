@@ -2,15 +2,21 @@
  * ScreenshotManager class for use in processing all screenshots associated with
  * a ticket
  */
-class ScreenshotManager {
+import AsyncWorker from './AsyncWorker.js';
+
+class ScreenshotManager extends AsyncWorker {
   constructor(defaultUserAgent) {
+    super('screenshot collection');
+
     this.defaultUserAgent = defaultUserAgent;
   }
 
   // Processes all screenshots for a ticket and returns artifacts
   processScreenshots = async (ticket, page) => {
+    super.start();
     console.log('Capturing screenshots...');
     this.ticket = ticket;
+
     const ssArtifacts = [];
 
     // process fullpage screenshot
@@ -23,6 +29,8 @@ class ScreenshotManager {
       let ssArtifact = await this._processCustomScreenshot(page, ticket, ss);
       ssArtifacts.push(ssArtifact);
     }
+
+    super.finish();
 
     return ssArtifacts;
   };

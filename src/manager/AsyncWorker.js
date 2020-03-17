@@ -4,9 +4,21 @@ import EventEmitter from 'events';
 class ReadyEmitter extends EventEmitter {}
 
 export default class AsyncWorker {
-  constructor() {
+  constructor(operation) {
+    this.operation = operation;
     this.ready = false;
     this.readyEmitter = new ReadyEmitter();
+    this.wallClock = Date.now();
+  }
+
+  start() {
+    this.wallClock = Date.now();
+  }
+
+  finish() {
+    const delta = Date.now() - this.wallClock;
+
+    console.log(`Operation ${this.operation} completed in ${delta}ms.`);
   }
 
   waitUntilReady() {

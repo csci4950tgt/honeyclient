@@ -3,7 +3,7 @@ import AsyncWorker from './AsyncWorker.js';
 
 export default class ResourceManager extends AsyncWorker {
   constructor() {
-    super();
+    super('resource collection');
 
     this.resources = [];
     this.urls = [];
@@ -12,6 +12,7 @@ export default class ResourceManager extends AsyncWorker {
   setupResourceCollection(page, ticket) {
     console.log(`Capturing JS...`);
     const ticketId = ticket.getID();
+    this.start();
 
     page.on('response', async response => {
       // extract some information from the response object:
@@ -59,6 +60,7 @@ export default class ResourceManager extends AsyncWorker {
     // https://developer.mozilla.org/en-US/docs/Web/API/Window/load_event
     page.on('load', () => {
       super.ready();
+      super.finish();
     });
   }
 

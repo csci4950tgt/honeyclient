@@ -1,8 +1,11 @@
 import yara from 'yara';
 import { promisify } from 'util';
+import AsyncWorker from './AsyncWorker.js';
 
-export default class YaraManager {
+export default class YaraManager extends AsyncWorker {
   constructor() {
+    super('yara');
+
     this.resources = [];
   }
 
@@ -21,6 +24,8 @@ export default class YaraManager {
    */
   async setupResourceScan(jsArtifacts, ticket) {
     console.log('Scanning JS...');
+    super.start();
+
     const ticketId = ticket.getID();
     const responseFile = 'yara_response.txt';
     const initialize = promisify(yara.initialize);
@@ -92,6 +97,8 @@ export default class YaraManager {
         this.createYaraArtifact(ticketId, responseFile, true)
       );
     }
+
+    super.finish();
 
     return this.resources;
   }

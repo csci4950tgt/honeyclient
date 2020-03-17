@@ -1,7 +1,10 @@
 import fetch from 'node-fetch';
+import AsyncWorker from './AsyncWorker.js';
 
-export default class SafeBrowsingManager {
+export default class SafeBrowsingManager extends AsyncWorker {
   constructor() {
+    super('safe browsing analysis');
+
     // Get Google Safe Browsing key
     this.apiKey = process.env.GOOGLE_SAFE_BROWSING_API_KEY;
   }
@@ -19,6 +22,8 @@ export default class SafeBrowsingManager {
   }
 
   async getMalwareMatches(URLs) {
+    super.start();
+
     // Make request to Google safe browsing
     const safeBrowsingURL = `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${this.apiKey}`;
     const requestURLList = URLs.map(entry => {
@@ -49,6 +54,8 @@ export default class SafeBrowsingManager {
         responseType: 'application/json',
       }).then(res => res.json());
 
+      super.finish();
+
       if (!json.matches) {
         console.log('No Malware found');
 
@@ -61,6 +68,7 @@ export default class SafeBrowsingManager {
       }
     } catch (err) {
       console.error(err);
+      super.finish();
 
       throw Error(err.message);
     }
