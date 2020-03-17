@@ -9,6 +9,31 @@ export default class YaraManager extends AsyncWorker {
     this.resources = [];
   }
 
+  parseResource(res) {
+    return JSON.parse(res.data.toString('utf8'));
+  }
+
+  cleanupResources() {
+    const isError = res => this.parseResource(res).error;
+    const hasErrorResource = this.resources.some(isError);
+
+    // remove non-error resources if there's an error
+    this.resources = this.resources.filter(
+      res => hasErrorResource && !this.parseResource(res).error
+    );
+
+    if (this.resources.every(isError) && this.resources.length > 1) {
+      console.warn('yara: multiple error resources, only returning one.');
+
+      this.resources.length = 1;
+    }
+
+    if (this.resources.length > 1) {
+      console.warn('yara: returning invalid resource');
+      console.log(this.resources);
+    }
+  }
+
   /*
    * This Method scans a list of raw js artifacts using
    * a set of Yara rules. Returns the Js artifacts that match
@@ -53,10 +78,13 @@ export default class YaraManager extends AsyncWorker {
 
         for (const js of jsArtifacts) {
           const buf = { buffer: js.data };
-          const scan = promisify(scanner.scan);
 
           try {
-            const result = await scan(buf);
+            const result = await new Promise((resolve, reject) =>
+              scanner.scan(buf, (error, res) =>
+                error ? reject(error) : resolve(res)
+              )
+            );
 
             if (result.rules.length) {
               const matchText = 'match: ' + JSON.stringify(result);
@@ -73,6 +101,8 @@ export default class YaraManager extends AsyncWorker {
               );
             }
           } catch (error) {
+            console.log(error);
+
             this.resources.push(
               this.createYaraArtifact(ticketId, js.filename, true)
             );
@@ -97,6 +127,8 @@ export default class YaraManager extends AsyncWorker {
         this.createYaraArtifact(ticketId, responseFile, true)
       );
     }
+
+    this.cleanupResources();
 
     super.finish();
 
