@@ -47,7 +47,7 @@ export default class YaraManager {
         let matchFlag = false;
 
         for (const js of jsArtifacts) {
-          const buf = { buffer: Buffer.from(js) };
+          const buf = { buffer: js.data };
           const scan = promisify(scanner.scan);
 
           try {
@@ -92,6 +92,8 @@ export default class YaraManager {
         this.createYaraArtifact(ticketId, responseFile, true)
       );
     }
+
+    return this.resources;
   }
 
   /*
