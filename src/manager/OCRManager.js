@@ -1,8 +1,11 @@
 import recognize from 'tesseractocr';
 import path from 'path';
+import AsyncWorker from './AsyncWorker.js';
 
-export default class OCRManager {
+export default class OCRManager extends AsyncWorker {
   constructor(lang = 'eng') {
+    super('OCR');
+
     this.lang = lang;
   }
 
@@ -24,10 +27,18 @@ export default class OCRManager {
     };
   }
 
-  processImages(screenshots) {
+  async processImages(screenshots) {
+    super.start();
+
     // use Promise.all to wait for all screenshots to process
     // also does work in parallel
-    return Promise.all(screenshots.map(ss => this.getTextFromImage(ss)));
+    const result = await Promise.all(
+      screenshots.map(ss => this.getTextFromImage(ss))
+    );
+
+    super.finish();
+
+    return result;
   }
 }
 

@@ -21,10 +21,6 @@ router.post('/', async (req, res) => {
     const ticket = new Ticket(ID, url, screenshots);
     const results = await ticketManager.processTicket(ticket);
 
-    console.log(
-      `Finished processing ticket with ID ${ticket.getID()}! Awaiting more...`
-    );
-
     res.json(results);
   } catch (e) {
     console.error('An error occurred when processing this ticket.');

@@ -1,79 +1,24 @@
-import ScreenshotManager from './screenshots.js';
+import ScreenshotManager from '../manager/ScreenshotManager.js';
 import ResourceManager from '../manager/ResourceManager.js';
 import getBrowser from '../utils/browser.js';
 import ArtifactManager from '../manager/ArtifactManager.js';
-import YaraManager from './yara.js';
-import fetch from 'node-fetch';
-
-const getMalwareMatches = async URLs => {
-  // Get Google Safe Browsing key
-  const google_safe_browsing_api_key = process.env.GOOGLE_SAFE_BROWSING_API_KEY;
-  if (!google_safe_browsing_api_key) {
-    console.error(
-      `You need an environment variable for GOOGLE_SAFE_BROWSING_API_KEY. Please check slack for this key.
-    Quiting honeyclient now.`
-    );
-    process.exit();
-  }
-
-  // Make request to Google safe browsing
-  console.log(`Getting Google Safe Browsing information...`);
-  const safeBrowsingURL =
-    'https://safebrowsing.googleapis.com/v4/threatMatches:find?key=' +
-    google_safe_browsing_api_key;
-  const requestURLList = URLs.map(entry => {
-    const container = {};
-    container['url'] = entry;
-    return container;
-  });
-  const request = {
-    client: {
-      clientId: '4950',
-      clientVersion: '0.0.1',
-    },
-    threatInfo: {
-      threatTypes: ['MALWARE'],
-      platformTypes: ['ANY_PLATFORM'],
-      threatEntryTypes: ['URL'],
-      threatEntries: requestURLList,
-    },
-  };
-
-  try {
-    // Parse request
-    const res = await fetch(safeBrowsingURL, {
-      method: 'POST',
-      body: JSON.stringify(request),
-      responseType: 'application/json',
-    });
-    const json = res.json();
-    if (!json.matches) {
-      console.log('No Malware found');
-      return [];
-    } else {
-      console.log('Malware found');
-      console.log(json.matches);
-      return json.matches;
-    }
-  } catch (err) {
-    console.error(error);
-    throw Error(err.message);
-  }
-};
+import YaraManager from '../manager/YaraManager.js';
 import OCRManager from '../manager/OCRManager.js';
+import SafeBrowsingManager from '../manager/SafeBrowsingManager.js';
 
 const processTicket = async ticket => {
   const ticketId = ticket.getID();
   const ticketURL = ticket.getURL();
 
+  const browser = await getBrowser();
   const resourceManager = new ResourceManager();
   const yaraManager = new YaraManager();
+  const ocrManager = new OCRManager();
+  const ssManager = new ScreenshotManager(await browser.userAgent());
+  const safeBrowsingManager = new SafeBrowsingManager();
 
   console.log(`Starting to process ticket #${ticketId}.`);
   console.log(`URL: ${ticketURL}`);
-
-  // Setup browser
-  const browser = await getBrowser();
 
   // Create a new page in puppeteer:
   const page = await browser.newPage();
@@ -84,39 +29,42 @@ const processTicket = async ticket => {
   // Store all artifacts while processing honeyclient, will eventually return to api
   const artifacts = [];
 
-  // process screenshots
-  const defaultUserAgent = await browser.userAgent();
-  const ss = new ScreenshotManager(defaultUserAgent);
-  const ocrManager = new OCRManager();
-  const ssArtifacts = await ss.processScreenshots(ticket, page);
-  const ocrArtifacts = await ocrManager.processImages(ssArtifacts);
-
-  artifacts.push(...ssArtifacts);
-  artifacts.push(...ocrArtifacts);
-
-  // process resources
+  // process resources, waits for page to finish loading
   const jsArtifacts = await resourceManager.process();
   artifacts.push(...jsArtifacts);
 
-  // scan js
-  yaraManager.setupResourceScan(jsArtifacts, ticket);
-  const yaraArtifacts = await yaraManager.process();
-  artifacts.push(...yaraArtifacts);
+  // needed for safe browsing:
+  const urls = resourceManager.getURLs();
+
+  // process screenshots. ocr depends on this, so doing in sync...
+  const ssArtifacts = await ssManager.processScreenshots(ticket, page);
+
+  // do next 3 tasks in parallel using Promise.all.
+  // ocr, yara, safe browsing API
+  const asyncArtifacts = await Promise.all([
+    ocrManager.processImages(ssArtifacts),
+    yaraManager.setupResourceScan(jsArtifacts, ticket),
+    safeBrowsingManager.getMalwareMatches(urls),
+  ]);
+
+  artifacts.push(...ssArtifacts); // screenshots
+  artifacts.push(...asyncArtifacts[0]); // ocr
+  artifacts.push(...asyncArtifacts[1]); // yara
 
   // store
   ArtifactManager.storeArtifactsForTicket(artifacts);
 
   await page.close();
 
-  // Get result from Google Safe Browsing API v4
-  const urls = await resourceManager.getURLs();
-  const malwareMatches = await getMalwareMatches(urls);
+  console.log(
+    `Finished processing #${ticketId}, ${artifacts.length} artifacts stored.`
+  );
 
   // Success, return list of paths
   return {
     success: true,
     fileArtifacts: artifacts.map(ArtifactManager.artifactToPath),
-    malwareMatches: JSON.stringify(malwareMatches),
+    malwareMatches: JSON.stringify(asyncArtifacts[2]),
   };
 };
 
