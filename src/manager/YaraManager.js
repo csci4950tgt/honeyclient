@@ -51,7 +51,7 @@ export default class YaraManager extends AsyncWorker {
     super.start();
 
     const ticketId = ticket.getID();
-    const responseFile = 'yara_response.yara';
+    const responseFile = 'response.yara';
     const initialize = promisify(yara.initialize);
 
     try {
