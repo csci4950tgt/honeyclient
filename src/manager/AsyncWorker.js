@@ -18,12 +18,11 @@ export default class AsyncWorker {
   }
 
   finish() {
-    if (this.wallClock === -1) return;
+    if (!this.isReady) return;
 
     const delta = Date.now() - this.wallClock;
 
     console.log(`Operation ${this.operation} completed in ${delta}ms.`);
-    this.wallClock = -1;
   }
 
   waitUntilReady() {
