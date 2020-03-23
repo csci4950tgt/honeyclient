@@ -6,7 +6,7 @@ class ReadyEmitter extends EventEmitter {}
 export default class AsyncWorker {
   constructor(operation) {
     this.operation = operation;
-    this.ready = false;
+    this.isReady = false;
     this.readyEmitter = new ReadyEmitter();
     this.wallClock = Date.now();
   }
@@ -18,14 +18,17 @@ export default class AsyncWorker {
   }
 
   finish() {
+    if (this.wallClock === -1) return;
+
     const delta = Date.now() - this.wallClock;
 
     console.log(`Operation ${this.operation} completed in ${delta}ms.`);
+    this.wallClock = -1;
   }
 
   waitUntilReady() {
     return new Promise(resolve => {
-      if (this.ready) {
+      if (this.isReady) {
         resolve(true);
       } else {
         this.readyEmitter.on('ready', resolve);
@@ -34,7 +37,9 @@ export default class AsyncWorker {
   }
 
   ready() {
-    this.ready = true;
-    this.readyEmitter.emit('ready');
+    if (!this.isReady) {
+      this.isReady = true;
+      this.readyEmitter.emit('ready');
+    }
   }
 }

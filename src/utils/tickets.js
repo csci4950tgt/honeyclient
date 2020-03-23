@@ -38,8 +38,8 @@ const processTicket = async ticket => {
   const urls = resourceManager.getURLs();
 
   // filter out only js files for yara:
-  const jsArtifacts = resourceArtifacts.filter(
-    artifact => !isImageUrl(artifact.filename)
+  const jsArtifacts = resourceArtifacts.filter(artifact =>
+    artifact.filename.endsWith('.js')
   );
 
   // filter out images for OCR:
@@ -47,20 +47,18 @@ const processTicket = async ticket => {
     isImageUrl(artifact.filename)
   );
 
-  // process screenshots. ocr depends on this, so doing in sync...
-  const ssArtifacts = await ssManager.processScreenshots(ticket, page);
-
   // do next 3 tasks in parallel using Promise.all.
   // ocr, yara, safe browsing API
   const asyncArtifacts = await Promise.all([
+    ssManager.processScreenshots(ticket, page),
     ocrManager.processImages(imgArtifacts),
     yaraManager.setupResourceScan(jsArtifacts, ticket),
     safeBrowsingManager.getMalwareMatches(urls),
   ]);
 
-  artifacts.push(...ssArtifacts); // screenshots
-  artifacts.push(...asyncArtifacts[0]); // ocr
-  artifacts.push(...asyncArtifacts[1]); // yara
+  artifacts.push(...asyncArtifacts[0]); // screenshots
+  artifacts.push(...asyncArtifacts[1]); // ocr
+  artifacts.push(...asyncArtifacts[2]); // yara
 
   // store
   ArtifactManager.storeArtifactsForTicket(artifacts);

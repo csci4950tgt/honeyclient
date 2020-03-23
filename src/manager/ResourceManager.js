@@ -2,17 +2,49 @@ import path from 'path';
 import isImageUrl from 'is-image-url';
 import AsyncWorker from './AsyncWorker.js';
 
+const LOAD_TIMEOUT = 10 * 1000;
+
 export default class ResourceManager extends AsyncWorker {
   constructor() {
     super('resource collection');
 
     this.resources = [];
     this.urls = [];
+
+    // the last time a relevant asset was requested
+    this.lastResourceLoadedAt = Date.now();
+  }
+
+  isRelevantAsset(url) {
+    return url.endsWith('.js') || isImageUrl(url);
   }
 
   setupResourceCollection(page, ticket) {
     const ticketId = ticket.getID();
     this.start();
+
+    setTimeout(() => {
+      if (super.isReady) return;
+
+      console.log(
+        'Page failed to finish loading before timeout. Marking complete anyways.'
+      );
+
+      super.ready();
+      super.finish();
+    }, LOAD_TIMEOUT);
+
+    const pageLoadWatcher = setInterval(() => {
+      if (Date.now() - this.lastResourceLoadedAt > 1000 && !super.isReady) {
+        console.log(
+          'One second elapsed since last relevant resource was requested. Marking complete.'
+        );
+
+        clearInterval(pageLoadWatcher);
+        super.ready();
+        super.finish();
+      }
+    }, 100);
 
     page.on('response', async response => {
       // extract some information from the response object:
@@ -46,6 +78,10 @@ export default class ResourceManager extends AsyncWorker {
         identifier = `${hostname}/${pathParsed.name}-${i}${pathParsed.ext}`;
       }
 
+      if (ok && this.isRelevantAsset(url)) {
+        this.lastResourceLoadedAt = Date.now();
+      }
+
       // collect .js files retrieved for static analysis
       if (ok && url.endsWith('.js')) {
         const text = await response.text();
@@ -71,11 +107,11 @@ export default class ResourceManager extends AsyncWorker {
 
     // load event is emitted when resources are finished loading for the page
     // https://developer.mozilla.org/en-US/docs/Web/API/Window/load_event
+    // this doesn't delay for all the images to load.
     page.on('load', () => {
       console.log('Page emitted load event.');
 
-      super.ready();
-      super.finish();
+      this.lastResourceLoadedAt = Date.now();
     });
   }
 
