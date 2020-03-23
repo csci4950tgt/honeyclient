@@ -51,7 +51,7 @@ export default class YaraManager extends AsyncWorker {
     super.start();
 
     const ticketId = ticket.getID();
-    const responseFile = 'yara_response.txt';
+    const responseFile = 'yara_response.yara';
     const initialize = promisify(yara.initialize);
 
     try {
@@ -92,7 +92,7 @@ export default class YaraManager extends AsyncWorker {
               this.resources.push(
                 this.createYaraArtifact(
                   ticketId,
-                  js.filename,
+                  js.filename + '.yara',
                   false,
                   true,
                   matchText
@@ -103,7 +103,10 @@ export default class YaraManager extends AsyncWorker {
             console.log(error);
 
             this.resources.push(
-              this.createYaraArtifact(ticketId, js.filename, true)
+              this.createYaraArtifact(
+                ticketId, 
+                js.filename + '.yara', 
+                true)
             );
           }
         }
