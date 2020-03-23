@@ -73,7 +73,7 @@ const processTicket = async ticket => {
   return {
     success: true,
     fileArtifacts: artifacts.map(ArtifactManager.artifactToPath),
-    malwareMatches: JSON.stringify(asyncArtifacts[2]),
+    malwareMatches: JSON.stringify(asyncArtifacts[3]),
   };
 };
 
