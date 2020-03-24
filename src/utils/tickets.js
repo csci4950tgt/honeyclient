@@ -5,6 +5,7 @@ import ArtifactManager from '../manager/ArtifactManager.js';
 import YaraManager from '../manager/YaraManager.js';
 import OCRManager from '../manager/OCRManager.js';
 import SafeBrowsingManager from '../manager/SafeBrowsingManager.js';
+import isImageUrl from 'is-image-url';
 
 const processTicket = async ticket => {
   const ticketId = ticket.getID();
@@ -30,26 +31,34 @@ const processTicket = async ticket => {
   const artifacts = [];
 
   // process resources, waits for page to finish loading
-  const jsArtifacts = await resourceManager.process();
-  artifacts.push(...jsArtifacts);
+  const resourceArtifacts = await resourceManager.process();
+  artifacts.push(...resourceArtifacts);
 
   // needed for safe browsing:
   const urls = resourceManager.getURLs();
 
-  // process screenshots. ocr depends on this, so doing in sync...
-  const ssArtifacts = await ssManager.processScreenshots(ticket, page);
+  // filter out only js files for yara:
+  const jsArtifacts = resourceArtifacts.filter(artifact =>
+    artifact.filename.endsWith('.js')
+  );
+
+  // filter out images for OCR:
+  const imgArtifacts = resourceArtifacts.filter(artifact =>
+    isImageUrl(artifact.filename)
+  );
 
   // do next 3 tasks in parallel using Promise.all.
   // ocr, yara, safe browsing API
   const asyncArtifacts = await Promise.all([
-    ocrManager.processImages(ssArtifacts),
+    ssManager.processScreenshots(ticket, page),
+    ocrManager.processImages(imgArtifacts),
     yaraManager.setupResourceScan(jsArtifacts, ticket),
     safeBrowsingManager.getMalwareMatches(urls),
   ]);
 
-  artifacts.push(...ssArtifacts); // screenshots
-  artifacts.push(...asyncArtifacts[0]); // ocr
-  artifacts.push(...asyncArtifacts[1]); // yara
+  artifacts.push(...asyncArtifacts[0]); // screenshots
+  artifacts.push(...asyncArtifacts[1]); // ocr
+  artifacts.push(...asyncArtifacts[2]); // yara
 
   // store
   ArtifactManager.storeArtifactsForTicket(artifacts);
@@ -64,7 +73,7 @@ const processTicket = async ticket => {
   return {
     success: true,
     fileArtifacts: artifacts.map(ArtifactManager.artifactToPath),
-    malwareMatches: JSON.stringify(asyncArtifacts[2]),
+    malwareMatches: JSON.stringify(asyncArtifacts[3]),
   };
 };
 
