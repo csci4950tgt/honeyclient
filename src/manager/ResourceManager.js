@@ -100,7 +100,7 @@ export default class ResourceManager extends AsyncWorker {
         this.resources.push({
           ticketId,
           filename: identifier,
-          data: buf,
+          data: Buffer.from(buf),
         });
       }
     });
