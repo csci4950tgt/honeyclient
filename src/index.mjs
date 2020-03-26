@@ -4,9 +4,13 @@ import dotenv from 'dotenv';
 // Routes
 import ticketRouter from './routes/ticket.js';
 import artifactRouter from './routes/artifact.js';
+import SafeBrowsingManager from './manager/SafeBrowsingManager.js';
 
 // Use environment variables in projects
 dotenv.config();
+
+// validate API key
+SafeBrowsingManager.checkApiKey();
 
 // Port
 const port = process.env.PORT || 8000;

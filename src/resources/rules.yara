@@ -92,7 +92,7 @@ rule possible_includes_base64_packed_functions {
   strings:
       $f = /(atob|btoa|;base64|base64,)/ nocase
   condition:
-      $f
+      any of them
   }
 
 rule dean_edwards : obfuscator {
