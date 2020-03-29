@@ -57,7 +57,7 @@ const processTicket = async ticket => {
   ]);
 
   artifacts.push(...asyncArtifacts[0]); // screenshots
-  artifacts.push(...asyncArtifacts[1]); // ocr
+  artifacts.push(...asyncArtifacts[1].filter(a => a)); // ocr, remove nulls
   artifacts.push(...asyncArtifacts[2]); // yara
 
   // store
