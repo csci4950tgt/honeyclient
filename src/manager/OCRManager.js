@@ -12,7 +12,13 @@ export default class OCRManager extends AsyncWorker {
   async getTextFromImage(screenshot) {
     console.log(`Start recognition process for ${screenshot.filename}.`);
 
-    const res = await recognize(screenshot.data, { language: this.lang });
+    let res;
+
+    try {
+      res = await recognize(screenshot.data, { language: this.lang });
+    } catch (e) {
+      return null;
+    }
 
     console.log(`Recognized the following text in image: ${res}`);
 
