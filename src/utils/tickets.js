@@ -32,18 +32,13 @@ const processTicket = async ticket => {
 
   // process resources, waits for page to finish loading
   const resourceArtifacts = await resourceManager.process();
-  artifacts.push(...resourceArtifacts);
+  artifacts.push(...resourceArtifacts[0]);
 
   // needed for safe browsing:
   const urls = resourceManager.getURLs();
 
-  // filter out only js files for yara:
-  const jsArtifacts = resourceArtifacts.filter(artifact =>
-    artifact.filename.endsWith('.js')
-  );
-
   // filter out images for OCR:
-  const imgArtifacts = resourceArtifacts.filter(artifact =>
+  const imgArtifacts = resourceArtifacts[0].filter(artifact =>
     isImageUrl(artifact.filename)
   );
 
@@ -52,7 +47,7 @@ const processTicket = async ticket => {
   const asyncArtifacts = await Promise.all([
     ssManager.processScreenshots(ticket, page),
     ocrManager.processImages(imgArtifacts),
-    yaraManager.setupResourceScan(jsArtifacts, ticket),
+    yaraManager.setupResourceScan(resourceArtifacts[1], ticket),
     safeBrowsingManager.getMalwareMatches(urls),
   ]);
 

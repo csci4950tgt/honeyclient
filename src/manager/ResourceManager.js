@@ -1,6 +1,7 @@
 import path from 'path';
 import isImageUrl from 'is-image-url';
 import AsyncWorker from './AsyncWorker.js';
+import detectCharacterEncoding from 'detect-character-encoding';
 
 const LOAD_TIMEOUT = 10 * 1000;
 
@@ -8,6 +9,7 @@ export default class ResourceManager extends AsyncWorker {
   constructor() {
     super('resource collection');
 
+    this.yaraResources = [];
     this.resources = [];
     this.urls = [];
 
@@ -51,6 +53,7 @@ export default class ResourceManager extends AsyncWorker {
       const url = response.url();
       const status = response.status();
       const ok = response.ok();
+      const request = response.request();
 
       console.log(`${status} ${url}`);
 
@@ -78,30 +81,59 @@ export default class ResourceManager extends AsyncWorker {
         identifier = `${hostname}/${pathParsed.name}-${i}${pathParsed.ext}`;
       }
 
-      if (ok && this.isRelevantAsset(url)) {
+      if (ok) {
         this.lastResourceLoadedAt = Date.now();
-      }
 
-      // collect .js files retrieved for static analysis
-      if (ok && url.endsWith('.js')) {
-        const text = await response.text();
+        // collect .js files for display and scanning.
+        if (url.endsWith('.js')) {
+          const text = await response.text();
 
-        this.resources.push({
-          ticketId,
-          filename: identifier,
-          data: Buffer.from(text, 'utf8'),
-        });
-      }
+          this.resources.push({
+            ticketId,
+            filename: identifier,
+            data: Buffer.from(text, 'utf8'),
+          });
 
-      // collect images retrieved for OCR purposes
-      if (ok && isImageUrl(url)) {
-        const buf = await response.buffer();
+          this.yaraResources.push({
+            ticketId,
+            filename: identifier,
+            data: Buffer.from(text, 'utf8'),
+          });
 
-        this.resources.push({
-          ticketId,
-          filename: identifier,
-          data: Buffer.from(buf),
-        });
+          // collect images retrieved for OCR purposes
+        } else if (isImageUrl(url)) {
+          const buf = await response.buffer();
+          const text = await response.text();
+
+          this.resources.push({
+            ticketId,
+            filename: identifier,
+            data: Buffer.from(buf),
+          });
+
+          // Save images as text for static analysis to detect potential obfuscation
+          this.yaraResources.push({
+            ticketId,
+            filename: identifier,
+            data: Buffer.from(text, 'utf8'),
+          });
+          this.yaraResources.push({
+            ticketId,
+            filename: identifier,
+            data: Buffer.from(text, 'utf16'),
+          });
+
+          // Process all other resources
+        } else if (request.resourceType() === 'xhr') {
+          const text = await response.text();
+          const charsetMatch = detectCharacterEncoding(text);
+
+          this.yaraResources.push({
+            ticketId,
+            filename: identifier,
+            data: Buffer.from(text, charsetMatch.encoding),
+          });
+        }
       }
     });
 
@@ -118,7 +150,7 @@ export default class ResourceManager extends AsyncWorker {
   async process() {
     await super.waitUntilReady();
 
-    return this.resources;
+    return [this.resources, this.yaraResources];
   }
 
   getURLs() {
