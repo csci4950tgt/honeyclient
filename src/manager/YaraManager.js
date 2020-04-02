@@ -47,7 +47,7 @@ export default class YaraManager extends AsyncWorker {
    *      matchedRule: only valid if (isMalicious == true)
    *      isMalicious: boolean, null if unknown
    */
-  async setupResourceScan(Resources, ticket) {
+  async setupResourceScan(resources, ticket) {
     super.start();
 
     const ticketId = ticket.getID();
@@ -75,7 +75,7 @@ export default class YaraManager extends AsyncWorker {
       } else {
         let matchFlag = false;
 
-        for (const text of Resources) {
+        for (const text of resources) {
           const buf = { buffer: text.data };
 
           try {

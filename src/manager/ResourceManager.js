@@ -17,10 +17,6 @@ export default class ResourceManager extends AsyncWorker {
     this.lastResourceLoadedAt = Date.now();
   }
 
-  isRelevantAsset(url) {
-    return url.endsWith('.js') || isImageUrl(url);
-  }
-
   setupResourceCollection(page, ticket) {
     const ticketId = ticket.getID();
     this.start();
