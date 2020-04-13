@@ -66,8 +66,8 @@ export default class YaraManager extends AsyncWorker {
         )
       );
 
-      if (warnings.length) {
-        console.log('Compile warnings: ' + JSON.stringify(warnings));
+      if (warnings.length > 0) {
+        console.log(`Compile warnings: ${JSON.stringify(warnings)}`);
 
         this.resources.push(
           this.createYaraArtifact(ticketId, responseFile, true)
@@ -86,13 +86,13 @@ export default class YaraManager extends AsyncWorker {
             );
 
             if (result.rules.length) {
-              const matchText = 'match: ' + JSON.stringify(result);
+              const matchText = `match: ${JSON.stringify(result)}`;
 
               matchFlag = true;
               this.resources.push(
                 this.createYaraArtifact(
                   ticketId,
-                  js.filename + '.yara',
+                  `${js.filename}.yara`,
                   false,
                   true,
                   matchText
@@ -103,10 +103,7 @@ export default class YaraManager extends AsyncWorker {
             console.log(error);
 
             this.resources.push(
-              this.createYaraArtifact(
-                ticketId, 
-                js.filename + '.yara', 
-                true)
+              this.createYaraArtifact(ticketId, `${js.filename}.yara`, true)
             );
           }
         }
@@ -131,7 +128,6 @@ export default class YaraManager extends AsyncWorker {
     }
 
     this.cleanupResources();
-
     super.finish();
 
     return this.resources;
@@ -149,7 +145,7 @@ export default class YaraManager extends AsyncWorker {
   ) {
     return {
       ticketID,
-      filename: filename,
+      filename,
       data: Buffer.from(
         JSON.stringify({
           error: error,
