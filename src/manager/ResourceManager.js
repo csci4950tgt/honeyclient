@@ -116,18 +116,18 @@ export default class ResourceManager extends AsyncWorker {
           this.yaraResources.push({
             ticketId,
             filename: identifier,
-            data: Buffer.from(text, 'utf16'),
+            data: Buffer.from(text, 'utf16le'),
           });
 
           // Process all other resources
         } else if (request.resourceType() === 'xhr') {
-          const text = await response.text();
-          const charsetMatch = detectCharacterEncoding(text);
+          const buf = await response.buffer();
+          const charsetMatch = detectCharacterEncoding(buf);
 
           this.yaraResources.push({
             ticketId,
             filename: identifier,
-            data: Buffer.from(text, charsetMatch.encoding),
+            data: Buffer.from(buf, charsetMatch.encoding),
           });
         }
       }
