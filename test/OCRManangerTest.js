@@ -5,7 +5,7 @@ import OCRManager from '../src/manager/OCRManager.js';
 describe('OCRManager', function() {
   it('should read correct string from a picture', function() {
     var rawImage;
-    fs.readFile('test/getTextFromImage.png', function(err, data) {
+    fs.readFile('test/resources/getTextFromImage.png', function(err, data) {
       if (err) throw err;
       const screenshot = {
         ticketId: 0,
@@ -16,10 +16,11 @@ describe('OCRManager', function() {
       manager
         .getTextFromImage(screenshot)
         .then(res => {
-          assert.equal(res.data.toString('utf8').trim(), 'getTextFromImage');
+          assert.equal(res.data.toString().trim(), 'getTextFromImage');
         })
         .catch(err => {
           console.log(err);
+          assert(false);
         });
     });
   });
