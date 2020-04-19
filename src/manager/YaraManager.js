@@ -35,8 +35,8 @@ export default class YaraManager extends AsyncWorker {
   }
 
   /*
-   * This Method scans a list of raw js artifacts using
-   * a set of Yara rules. Returns the Js artifacts that match
+   * This Method scans a list of raw text artifacts using
+   * a set of Yara rules. Returns the text artifacts that match
    * otherwise, no malware was detected.
    *
    * If an error occurs in processing, values are pushed to the RO
@@ -47,7 +47,7 @@ export default class YaraManager extends AsyncWorker {
    *      matchedRule: only valid if (isMalicious == true)
    *      isMalicious: boolean, null if unknown
    */
-  async setupResourceScan(jsArtifacts, ticket) {
+  async setupResourceScan(resources, ticket) {
     super.start();
 
     const ticketId = ticket.getID();
@@ -75,8 +75,8 @@ export default class YaraManager extends AsyncWorker {
       } else {
         let matchFlag = false;
 
-        for (const js of jsArtifacts) {
-          const buf = { buffer: js.data };
+        for (const text of resources) {
+          const buf = { buffer: text.data };
 
           try {
             const result = await new Promise((resolve, reject) =>
@@ -92,7 +92,7 @@ export default class YaraManager extends AsyncWorker {
               this.resources.push(
                 this.createYaraArtifact(
                   ticketId,
-                  js.filename + '.yara',
+                  text.filename + '.yara',
                   false,
                   true,
                   matchText
@@ -103,10 +103,7 @@ export default class YaraManager extends AsyncWorker {
             console.log(error);
 
             this.resources.push(
-              this.createYaraArtifact(
-                ticketId, 
-                js.filename + '.yara', 
-                true)
+              this.createYaraArtifact(ticketId, text.filename + '.yara', true)
             );
           }
         }
@@ -159,9 +156,5 @@ export default class YaraManager extends AsyncWorker {
         'utf8'
       ),
     };
-  }
-
-  process() {
-    return this.resources;
   }
 }
