@@ -30,18 +30,13 @@ export default {
 
     // process resources, waits for page to finish loading
     const resourceArtifacts = await resourceManager.process();
-    artifacts.push(...resourceArtifacts);
+    artifacts.push(...resourceArtifacts[0]);
 
     // needed for safe browsing:
     const urls = resourceManager.getURLs();
 
-    // filter out only js files for yara:
-    const jsArtifacts = resourceArtifacts.filter(artifact =>
-      artifact.filename.endsWith('.js')
-    );
-
     // filter out images for OCR:
-    const imgArtifacts = resourceArtifacts.filter(artifact =>
+    const imgArtifacts = resourceArtifacts[0].filter(artifact =>
       isImageUrl(artifact.filename)
     );
 
@@ -49,7 +44,7 @@ export default {
     const asyncArtifacts = await Promise.all([
       ssManager.processScreenshots(ticket, page), // screenshots
       ocrManager.processImages(imgArtifacts), // ocr
-      yaraManager.setupResourceScan(jsArtifacts, ticket), // yara
+      yaraManager.setupResourceScan(resourceArtifacts[1], ticket), // yara
       safeBrowsingManager.getMalwareMatches(urls), // safe browsing
     ]);
 
