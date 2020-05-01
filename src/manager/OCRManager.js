@@ -17,6 +17,10 @@ export default class OCRManager extends AsyncWorker {
     try {
       res = await recognize(screenshot.data, { language: this.lang });
     } catch (e) {
+      // sometimes this can fail, if it does, we skip to the next one.
+      // seems to have something to do with .svg files and trying to retrieve the
+      // manifest URL.
+
       return null;
     }
 
@@ -38,11 +42,14 @@ export default class OCRManager extends AsyncWorker {
 
     // use Promise.all to wait for all screenshots to process
     // also does work in parallel
-    const result = await Promise.all(
+    let result = await Promise.all(
       screenshots.map(ss => this.getTextFromImage(ss))
     );
 
     super.finish();
+
+    // filter out `null`:
+    result = result.filter(s => s);
 
     return result;
   }

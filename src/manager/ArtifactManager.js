@@ -52,6 +52,16 @@ export default {
       volume.writeFileSync(targetPath, artifact.data);
     }
   },
+  async deleteArtifactsByTicketId(ticketId) {
+    const data = volume.toJSON(`/artifacts/${ticketId}`);
+    const files = Object.keys(data).filter(el => data[el] != null);
+
+    for (let file of files) {
+      await mappedFs.promises.unlink(res);
+    }
+
+    return files.length;
+  },
   listArtifactsByTicketId(ticketId) {
     const data = volume.toJSON(`/artifacts/${ticketId}`);
 

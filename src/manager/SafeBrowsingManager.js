@@ -1,6 +1,10 @@
 import fetch from 'node-fetch';
 import AsyncWorker from './AsyncWorker.js';
 
+const SAFE_BROWSING_BASE = `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=`;
+const CLIENT_ID = '4950';
+const CLIENT_VERSION = '0.0.1';
+
 export default class SafeBrowsingManager extends AsyncWorker {
   constructor() {
     super('safe browsing analysis');
@@ -12,7 +16,7 @@ export default class SafeBrowsingManager extends AsyncWorker {
   static checkApiKey() {
     const instance = new SafeBrowsingManager();
 
-    if (!instance.apiKey) {
+    if (!instance.apiKey || instance.apiKey === '') {
       console.error(
         `You need an environment variable for GOOGLE_SAFE_BROWSING_API_KEY. Please check slack for this key.
     Quiting honeyclient now.`
@@ -24,17 +28,13 @@ export default class SafeBrowsingManager extends AsyncWorker {
   async getMalwareMatches(URLs) {
     super.start();
 
-    // Make request to Google safe browsing
-    const safeBrowsingURL = `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${this.apiKey}`;
-    const requestURLList = URLs.map(entry => {
-      const container = {};
-      container['url'] = entry;
-      return container;
-    });
+    const requestURLList = URLs.map(entry => ({
+      url: entry,
+    }));
     const request = {
       client: {
-        clientId: '4950',
-        clientVersion: '0.0.1',
+        clientId: CLIENT_ID,
+        clientVersion: CLIENT_VERSION,
       },
       threatInfo: {
         threatTypes: ['MALWARE'],
@@ -45,8 +45,8 @@ export default class SafeBrowsingManager extends AsyncWorker {
     };
 
     try {
-      // Parse request
-      const json = await fetch(safeBrowsingURL, {
+      // make request to google safe browsing. parse request:
+      const json = await fetch(SAFE_BROWSING_BASE + this.apiKey, {
         method: 'POST',
         body: JSON.stringify(request),
         responseType: 'application/json',
