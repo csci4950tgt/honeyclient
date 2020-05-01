@@ -5,9 +5,9 @@
   "main": "src/index.mjs",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node --experimental-modules src/index.mjs",
-    "dev": "nodemon --exec node --experimental-modules src/index.mjs"
+    "dev": "nodemon --exec node --experimental-modules src/index.mjs",
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -36,6 +36,7 @@
   },
   "devDependencies": {
     "husky": "^3.0.9",
+    "mocha": "^7.1.1",
     "nodemon": "^2.0.2",
     "prettier": "^1.18.2",
     "pretty-quick": "^2.0.0"
