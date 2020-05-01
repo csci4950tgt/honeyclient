@@ -3,6 +3,8 @@ import EventEmitter from 'events';
 // notifier once work finished
 class ReadyEmitter extends EventEmitter {}
 
+// tracks how long operations take, logging it to the console.
+// uses an event emitter to provide async/await paradigms for older-style callback code.
 export default class AsyncWorker {
   constructor(operation) {
     this.operation = operation;

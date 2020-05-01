@@ -19,8 +19,8 @@ export default class ResourceManager extends AsyncWorker {
 
   setupResourceCollection(page, ticket) {
     const ticketId = ticket.getID();
-    this.start();
 
+    this.start();
     setTimeout(() => {
       if (super.isReady) return;
 
@@ -32,7 +32,7 @@ export default class ResourceManager extends AsyncWorker {
       super.finish();
     }, LOAD_TIMEOUT);
 
-    const pageLoadWatcher = setInterval(() => {
+    let pageLoadWatcher = setInterval(() => {
       if (Date.now() - this.lastResourceLoadedAt > 1000 && !super.isReady) {
         console.log(
           'One second elapsed since last relevant resource was requested. Marking complete.'

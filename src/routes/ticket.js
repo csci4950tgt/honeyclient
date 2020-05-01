@@ -1,5 +1,5 @@
 import express from 'express';
-import ticketManager from '../utils/tickets.js';
+import TicketManager from '../manager/TicketManager.js';
 import Screenshot from '../models/Screenshot.js';
 import Ticket from '../models/Ticket.js';
 
@@ -19,7 +19,7 @@ router.post('/', async (req, res) => {
     );
 
     const ticket = new Ticket(ID, url, screenshots);
-    const results = await ticketManager.processTicket(ticket);
+    const results = await TicketManager.processTicket(ticket);
 
     res.json(results);
   } catch (e) {

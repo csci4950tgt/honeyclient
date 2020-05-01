@@ -9,6 +9,7 @@ class ScreenshotManager extends AsyncWorker {
     super('screenshot collection');
 
     this.defaultUserAgent = defaultUserAgent;
+    this.ticket = null;
   }
 
   // Processes all screenshots for a ticket and returns artifacts
@@ -17,13 +18,15 @@ class ScreenshotManager extends AsyncWorker {
     this.ticket = ticket;
 
     const ssArtifacts = [];
+    const customScreenshots = ticket.getScreenshots();
 
-    // process fullpage screenshot
+    // process fullpage screenshot.
+    // each screenshot is not done in parallel, so each one can have the
+    // proper user agent applied without a race condition.
     let ssArtifact = await this._processFullScreenshot(page);
     ssArtifacts.push(ssArtifact);
 
     // process custom screenshots
-    const customScreenshots = ticket.getScreenshots();
     for (const ss of customScreenshots) {
       let ssArtifact = await this._processCustomScreenshot(page, ticket, ss);
       ssArtifacts.push(ssArtifact);
@@ -36,19 +39,13 @@ class ScreenshotManager extends AsyncWorker {
 
   // Process fullpage screenshot and return the artifact
   _processFullScreenshot = async page => {
-    // initialize fullpage screenshot object
-    const ss = {
-      ticketId: this.ticket.getID(),
-      filename: 'screenshotFull.png',
-      userAgent: this.defaultUserAgent,
-    };
-
     // capture screenshot
     const data = await page.screenshot({ fullPage: true });
+
     // create artifact object to return
     return {
-      ticketId: ss.ticketId,
-      filename: ss.filename,
+      ticketId: this.ticket.getID(),
+      filename: 'screenshotFull.png',
       data,
     };
   };
@@ -69,7 +66,6 @@ class ScreenshotManager extends AsyncWorker {
     // capture screenshot
     const data = await page.screenshot();
 
-    // data object is a buffer, we'll send as base64:
     return {
       ticketId: ticket.getID(),
       filename: ss.getFilename(),
