@@ -25,7 +25,14 @@ A secure environment in which to do analysis work on a potentially malicious web
 
 ## Docker
 
-Alternatively, you can set up the entire system using Docker. A `Dockerfile` for this project is provided. See more information and instructions in the [csci4950tgt/utils](https://github.com/csci4950tgt/utils) repository.
+A `Dockerfile` for this service is provided. To run just this image, use the following commands:
+
+```bash
+ docker build --tag honeyclient .                     # Build the docker image
+ docker run -p 8000:8000 --env-file=.env honeyclient  # Run image as container, using local .env file, on port 8000
+```
+
+Alternatively, You can set up the entire system using Docker and Docker-Compose. See more information and instructions in the [csci4950tgt/utils](https://github.com/csci4950tgt/utils) repository.
 
 ## Class Overview
 
