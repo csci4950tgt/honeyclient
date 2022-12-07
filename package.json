@@ -26,7 +26,7 @@
     "@limedocs/express-middleware-memfs": "^1.0.0-beta.18",
     "detect-character-encoding": "^0.8.0",
     "dotenv": "^8.2.0",
-    "express": "^4.17.1",
+    "express": "^4.18.2",
     "is-image-url": "^1.1.8",
     "memfs": "^3.0.4",
     "node-fetch": "^2.6.1",
